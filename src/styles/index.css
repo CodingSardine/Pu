@@ -1,0 +1,82 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Desktop-first utilities */
+@layer utilities {
+  /* Prevent text overflow */
+  .text-responsive {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Smooth scaling on all devices */
+  .smooth-scale {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* High DPI screen optimizations */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .crisp-text {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+  }
+}
+
+/* Desktop breakpoint helpers */
+/* lg: 1024-1279px (small desktop) */
+/* xl: 1280-1535px (desktop) */
+/* 2xl: 1536px+ (large desktop) */
+/* 4K: 3840px+ (ultra-high resolution) */
+
+/* Prevent layout shift on scroll */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+/* Smooth scrolling for better UX */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glow-effect {
+    filter: none;
+  }
+}
+
+/* Ultra-wide screen support (21:9 and wider) */
+@media (min-width: 2560px) {
+  .sidebar-container {
+    max-width: 520px;
+  }
+}
+
+/* 4K and higher resolution support */
+@media (min-width: 3840px) {
+  :root {
+    font-size: 18px;
+  }
+  
+  .sidebar-container {
+    max-width: 600px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .sidebar-container,
+  button,
+  .modal {
+    display: none !important;
+  }
+}
