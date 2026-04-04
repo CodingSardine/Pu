@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useTheme } from '../context/ThemeContext';
 
 type Mode = 'eat' | 'focus' | 'chill';
 
@@ -17,7 +18,6 @@ interface LiveMapProps {
   selectedLocation: string | null;
   onLocationSelect: (id: string) => void;
   onMapReady?: (map: L.Map) => void;
-  theme?: 'dark' | 'light';
 }
 
 const MODE_COLORS = {
@@ -25,6 +25,16 @@ const MODE_COLORS = {
   focus: '#f43f5e',
   chill: '#6366f1',
 };
+
+const MODE_COLORS_LIGHT = {
+  eat: '#2a9d8f',
+  focus: '#9b2335',
+  chill: '#4a5568',
+};
+
+function getModeColor(mode: Mode, theme: 'dark' | 'light'): string {
+  return theme === 'light' ? MODE_COLORS_LIGHT[mode] : MODE_COLORS[mode];
+}
 
 // Delete default icon to prevent Leaflet from trying to load marker images
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -34,9 +44,18 @@ L.Icon.Default.mergeOptions({
   shadowUrl: '',
 });
 
-function buildIcon(modeColor: string, isSelected: boolean, enterDelay = 0, animate = false) {
+function buildIcon(modeColor: string, isSelected: boolean, enterDelay = 0, animate = false, theme: 'dark' | 'light' = 'dark') {
   const size = isSelected ? 36 : 28;
   const pinHeight = isSelected ? 46 : 36;
+  
+  // For light mode, use richer, more saturated colors with better contrast
+  const markerFill = theme === 'light' 
+    ? (isSelected ? modeColor : modeColor) 
+    : modeColor;
+  
+  const centerDotFill = theme === 'light' ? 'white' : 'white';
+  
+  const shadowColor = theme === 'light' ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.4)';
 
   const html = `
     <div style="
@@ -56,7 +75,7 @@ function buildIcon(modeColor: string, isSelected: boolean, enterDelay = 0, anima
           height: 48px;
           border-radius: 50%;
           background-color: ${modeColor};
-          opacity: 0.4;
+          opacity: ${theme === 'light' ? '0.3' : '0.4'};
           animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
           pointer-events: none;
         "></div>
@@ -65,13 +84,13 @@ function buildIcon(modeColor: string, isSelected: boolean, enterDelay = 0, anima
         width="${size}"
         height="${pinHeight}"
         viewBox="0 0 28 36"
-        style="position: relative; z-index: 10; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); cursor: pointer;"
+        style="position: relative; z-index: 10; filter: drop-shadow(0 4px 6px ${shadowColor}); cursor: pointer;"
       >
         <path
           d="M14 0C7.373 0 2 5.373 2 12c0 8 12 24 12 24s12-16 12-24c0-6.627-5.373-12-12-12z"
-          fill="${modeColor}"
+          fill="${markerFill}"
         />
-        <circle cx="14" cy="12" r="4" fill="white" />
+        <circle cx="14" cy="12" r="4" fill="${centerDotFill}" />
       </svg>
     </div>
   `;
@@ -92,16 +111,55 @@ function addMarkersToMap(
   markersRef: React.MutableRefObject<{ [key: string]: L.Marker }>,
   onLocationSelect: (id: string) => void,
   stagger: boolean,
+  theme: 'dark' | 'light' = 'dark',
 ) {
   locations.forEach((location, index) => {
+    // Validate coordinates before creating marker
+    if (typeof location.lat !== 'number' || typeof location.lng !== 'number' ||
+        isNaN(location.lat) || isNaN(location.lng)) {
+      console.warn(`Invalid coordinates for location ${location.id}`, location);
+      return;
+    }
+
     const isSelected = selectedLocation === location.id;
     const delay = stagger ? index * 80 : 0;
-    const icon = buildIcon(modeColor, isSelected, delay, stagger);
+    const icon = buildIcon(modeColor, isSelected, delay, stagger, theme);
 
-    const marker = L.marker([location.lat, location.lng], { icon, interactive: true })
+    // Create marker with explicit coordinates
+    const latLng = L.latLng(location.lat, location.lng);
+    const marker = L.marker(latLng, { 
+      icon, 
+      interactive: true,
+      // Ensure marker has explicit position before adding to map
+      opacity: stagger ? 0 : 1
+    });
+
+    // If staggered animation, fade in after delay
+    if (stagger) {
+      setTimeout(() => {
+        if (marker && map.hasLayer(marker)) {
+          marker.setOpacity(1);
+        }
+      }, delay);
+    }
+
+    marker
       .addTo(map)
       .on('click', (e) => {
         L.DomEvent.stopPropagation(e);
+        // Pan map so marker is in the right portion of viewport,
+        // leaving room for the card on the left
+        const mapSize = map.getSize();
+        const cardWidth = 480; // card is 448px + some margin
+        const markerPoint = map.latLngToContainerPoint([location.lat, location.lng]);
+        // Target: marker should be at x = cardWidth + (remaining width) / 2
+        const targetX = cardWidth + (mapSize.x - cardWidth) / 2;
+        const targetY = mapSize.y / 2;
+        const offsetX = markerPoint.x - targetX;
+        const offsetY = markerPoint.y - targetY;
+        if (Math.abs(offsetX) > 10 || Math.abs(offsetY) > 10) {
+          map.panBy([offsetX, offsetY], { animate: true, duration: 0.4 });
+        }
         onLocationSelect(location.id);
       });
 
@@ -115,8 +173,8 @@ export default function LiveMap({
   selectedLocation,
   onLocationSelect,
   onMapReady,
-  theme = 'dark',
 }: LiveMapProps) {
+  const theme = useTheme();
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<{ [key: string]: L.Marker }>({});
@@ -135,8 +193,8 @@ export default function LiveMap({
     });
 
     const tileLayer = L.tileLayer(
-      `https://{s}.basemaps.cartocdn.com/${theme}_all/{z}/{x}/{y}{r}.png`,
-      { attribution: '\u00a9 OpenStreetMap \u00a9 CARTO', maxZoom: 19 }
+      `https://tiles.stadiamaps.com/tiles/${theme === 'dark' ? 'alidade_smooth_dark' : 'alidade_smooth'}/{z}/{x}/{y}{r}.png`,
+      { attribution: '© Stadia Maps © OpenMapTiles © OpenStreetMap', maxZoom: 20 }
     ).addTo(map);
 
     tileLayerRef.current = tileLayer;
@@ -160,12 +218,12 @@ export default function LiveMap({
 
     const tileUrl =
       theme === 'dark'
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+        ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+        : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png';
 
     tileLayerRef.current = L.tileLayer(tileUrl, {
-      attribution: '\u00a9 OpenStreetMap \u00a9 CARTO',
-      maxZoom: 19,
+      attribution: '© Stadia Maps © OpenMapTiles © OpenStreetMap',
+      maxZoom: 20,
     }).addTo(mapRef.current);
   }, [theme]);
 
@@ -174,7 +232,7 @@ export default function LiveMap({
     if (!mapRef.current) return;
 
     const map = mapRef.current;
-    const modeColor = MODE_COLORS[selectedMode];
+    const modeColor = getModeColor(selectedMode, theme);
     const isModeChange = prevModeRef.current !== selectedMode;
     prevModeRef.current = selectedMode;
 
@@ -182,20 +240,26 @@ export default function LiveMap({
       // Lock to prevent re-entry during async transition
       transitionLockRef.current = true;
 
-      // 1. Animate existing markers out
+      // 1. Capture DOM elements before removing from map
+      const markerElements: HTMLElement[] = [];
       Object.values(markersRef.current).forEach((marker) => {
         const el = marker.getElement();
-        if (el) {
-          el.style.animation = 'markerPop 0.2s cubic-bezier(0.55, 0, 1, 0.45) forwards';
-        }
+        if (el) markerElements.push(el);
       });
 
-      // 2. After exit, swap in new markers with staggered drop
+      // 2. Remove all markers from map synchronously (no overlap!)
+      Object.values(markersRef.current).forEach((m) => map.removeLayer(m));
+      markersRef.current = {};
+
+      // 3. Now animate the detached DOM elements
+      markerElements.forEach((el) => {
+        el.style.animation = 'markerPop 0.2s cubic-bezier(0.55, 0, 1, 0.45) forwards';
+      });
+
+      // 4. After exit animation, add new markers with staggered drop
       const exitDuration = 220;
       const timer = setTimeout(() => {
-        Object.values(markersRef.current).forEach((m) => m.remove());
-        markersRef.current = {};
-        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, true);
+        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, true, theme);
         transitionLockRef.current = false;
       }, exitDuration);
 
@@ -204,9 +268,9 @@ export default function LiveMap({
       // Selection change or initial load — just refresh markers instantly
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
-      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, false);
+      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, false, theme);
     }
-  }, [locations, selectedLocation, selectedMode, onLocationSelect]);
+  }, [locations, selectedLocation, selectedMode, onLocationSelect, theme]);
 
   return (
     <>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Search, Sun, Moon, SlidersHorizontal, UtensilsCrossed, Focus, Coffee } from 'lucide-react';
 import svgPaths from '../../imports/svg-btvw69dr9p';
+import { useTheme } from '../context/ThemeContext';
 
 type Mode = 'eat' | 'focus' | 'chill';
 type Theme = 'dark' | 'light';
@@ -8,7 +9,6 @@ type Theme = 'dark' | 'light';
 interface SidebarProps {
   selectedMode: Mode;
   onModeChange: (mode: Mode) => void;
-  theme: Theme;
   onThemeChange: (theme: Theme) => void;
   onSearchToggle: () => void;
   onFiltersToggle: () => void;
@@ -23,6 +23,16 @@ const MODE_COLORS = {
   chill: '#6366f1',
 };
 
+const MODE_COLORS_LIGHT = {
+  eat: '#2a9d8f',
+  focus: '#9b2335',
+  chill: '#4a5568',
+};
+
+function getModeColor(mode: Mode, theme: Theme): string {
+  return theme === 'light' ? MODE_COLORS_LIGHT[mode] : MODE_COLORS[mode];
+}
+
 const MODE_LABELS = {
   eat: 'EAT',
   focus: 'FOCUS',
@@ -34,8 +44,8 @@ const FILTER_OPTIONS = [
   { id: 'power', label: 'Power Outlets' },
   { id: 'outdoor', label: 'Outdoor Seating' },
   { id: 'pet-friendly', label: 'Pet Friendly' },
-  { id: 'budget', label: '\u20ac' },
-  { id: 'premium', label: '\u20ac\u20ac\u20ac' },
+  { id: 'budget', label: '€' },
+  { id: 'premium', label: '€€€' },
 ];
 
 function Logo({ theme }: { theme: Theme }) {
@@ -67,7 +77,7 @@ interface ModeButtonProps {
 }
 
 function ModeButton({ mode, icon, isActive, onClick, theme }: ModeButtonProps) {
-  const color = MODE_COLORS[mode];
+  const color = getModeColor(mode, theme);
   
   return (
     <button
@@ -94,7 +104,6 @@ function ModeButton({ mode, icon, isActive, onClick, theme }: ModeButtonProps) {
 export default function Sidebar({ 
   selectedMode, 
   onModeChange, 
-  theme = 'dark',
   onThemeChange = () => {},
   onSearchToggle = () => {},
   onFiltersToggle = () => {},
@@ -102,10 +111,11 @@ export default function Sidebar({
   searchExpanded = false,
   filtersExpanded = false,
 }: SidebarProps) {
+  const theme = useTheme();
   const [modeToast, setModeToast] = useState<{ mode: Mode; label: string; y: number; key: number } | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bgColor = theme === 'dark' ? 'bg-slate-900' : 'bg-white';
-  const modeColor = MODE_COLORS[selectedMode];
+  const modeColor = getModeColor(selectedMode, theme);
   const modeButtonsRef = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   const modes = [
@@ -161,8 +171,8 @@ export default function Sidebar({
           <div
             className="rounded-full px-3 py-1.5 text-sm font-bold text-white whitespace-nowrap flex items-center animate-mode-toast"
             style={{
-              backgroundColor: MODE_COLORS[modeToast.mode],
-              boxShadow: `0 0 20px ${MODE_COLORS[modeToast.mode]}60, 0 4px 12px ${MODE_COLORS[modeToast.mode]}40`,
+              backgroundColor: getModeColor(modeToast.mode, theme),
+              boxShadow: `0 0 20px ${getModeColor(modeToast.mode, theme)}60, 0 4px 12px ${getModeColor(modeToast.mode, theme)}40`,
             }}
           >
             {modeToast.label}
@@ -195,8 +205,8 @@ export default function Sidebar({
                     : 'hover:bg-slate-200/50'
                 }`}
                 style={{
-                  backgroundColor: selectedMode === mode.key ? MODE_COLORS[mode.key] : 'transparent',
-                  boxShadow: selectedMode === mode.key ? `0 0 20px ${MODE_COLORS[mode.key]}40, 0 4px 12px ${MODE_COLORS[mode.key]}30` : undefined,
+                  backgroundColor: selectedMode === mode.key ? getModeColor(mode.key, theme) : 'transparent',
+                  boxShadow: selectedMode === mode.key ? `0 0 20px ${getModeColor(mode.key, theme)}40, 0 4px 12px ${getModeColor(mode.key, theme)}30` : undefined,
                 }}
               >
                 <div className={`flex items-center justify-center ${selectedMode === mode.key ? 'text-white' : theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>

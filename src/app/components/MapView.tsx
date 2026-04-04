@@ -1,11 +1,28 @@
-import { useEffect, useMemo, memo, useRef, useState } from 'react';
-import { Search, SlidersHorizontal, X, Menu, Plus, Minus, Home } from 'lucide-react';
-import LocationCard from './LocationCard';
+import { useMemo, memo, useRef } from 'react';
+import { Search, SlidersHorizontal, X, Plus, Minus, Home } from 'lucide-react';
+import LocationCard, { type PlaceApiData } from './LocationCard';
 import LiveMap from './LiveMap';
+import { useEffect } from 'react';
 import type L from 'leaflet';
+import { useTheme } from '../context/ThemeContext';
 
 type Mode = 'eat' | 'focus' | 'chill';
 type Theme = 'dark' | 'light';
+
+interface LocationEntry {
+  id: string;
+  lat: number;
+  lng: number;
+  name: string;
+  address?: string;
+  hours?: string;
+  cuisine?: string;
+  price?: string;
+  atmosphere?: string;
+  seating?: string;
+  gmaps?: string;
+  features: string[];
+}
 
 interface MapViewProps {
   selectedMode: Mode;
@@ -15,68 +32,68 @@ interface MapViewProps {
   onSearchChange: (query: string) => void;
   activeFilters: string[];
   onFiltersChange: (filters: string[]) => void;
-  theme: Theme;
   searchExpanded: boolean;
   onSearchExpandedChange: (expanded: boolean) => void;
   filtersExpanded: boolean;
   onFiltersExpandedChange: (expanded: boolean) => void;
+  placeData: Record<string, PlaceApiData>;
 }
 
-// Mode colors
 const MODE_COLORS = {
   eat: { main: '#14b8a6', light: 'rgba(20, 184, 166, 0.15)' },
   focus: { main: '#f43f5e', light: 'rgba(244, 63, 94, 0.15)' },
   chill: { main: '#6366f1', light: 'rgba(99, 102, 241, 0.15)' },
 } as const;
 
-// Filter options
+const MODE_COLORS_LIGHT = {
+  eat: { main: '#2a9d8f', light: 'rgba(42, 157, 143, 0.15)' },
+  focus: { main: '#9b2335', light: 'rgba(155, 35, 53, 0.15)' },
+  chill: { main: '#4a5568', light: 'rgba(74, 85, 104, 0.15)' },
+} as const;
+
+function getModeColorData(mode: 'eat' | 'focus' | 'chill', theme: 'dark' | 'light') {
+  return theme === 'light' ? MODE_COLORS_LIGHT[mode] : MODE_COLORS[mode];
+}
+
 const FILTER_OPTIONS = [
   { id: 'wifi', label: 'WiFi' },
   { id: 'power', label: 'Power Outlets' },
   { id: 'outdoor', label: 'Outdoor Seating' },
   { id: 'pet-friendly', label: 'Pet Friendly' },
-  { id: 'budget', label: '\u20ac' },
-  { id: 'premium', label: '\u20ac\u20ac\u20ac' },
+  { id: 'budget', label: '€' },
+  { id: 'premium', label: '€€€' },
 ];
 
 // Floating Search Bar
-const FloatingSearchBar = memo(function FloatingSearchBar({ 
-  searchQuery, 
-  onSearchChange, 
-  onClose, 
-  theme, 
-  modeColor 
-}: { 
-  searchQuery: string; 
-  onSearchChange: (query: string) => void; 
-  onClose: () => void; 
-  theme: Theme; 
+const FloatingSearchBar = memo(function FloatingSearchBar({
+  searchQuery,
+  onSearchChange,
+  onClose,
+  modeColor,
+}: {
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onClose: () => void;
   modeColor: string;
 }) {
+  const theme = useTheme();
   const panelBg = theme === 'dark' ? 'bg-slate-800/95' : 'bg-white/95';
   const textColor = theme === 'dark' ? 'text-white' : 'text-slate-900';
   const placeholderStyle = theme === 'dark' ? 'placeholder:text-slate-400' : 'placeholder:text-slate-500';
   const iconColor = theme === 'dark' ? 'text-slate-400' : 'text-slate-500';
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
   return (
     <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 z-[999] bg-black/20"
-        onClick={onClose}
-      />
-      
-      {/* Floating Search Bar */}
+      <div className="fixed inset-0 z-[999] bg-black/20" onClick={onClose} />
       <div className="fixed left-1/2 top-8 z-[1002] w-full max-w-2xl -translate-x-1/2 px-4">
-        <div className={`rounded-2xl ${panelBg} shadow-2xl backdrop-blur-xl border`}
+        <div
+          className={`rounded-2xl ${panelBg} shadow-2xl backdrop-blur-xl border`}
           style={{
             borderColor: `${modeColor}40`,
             boxShadow: `0 0 40px ${modeColor}20, 0 8px 32px rgba(0,0,0,0.3)`,
@@ -91,9 +108,7 @@ const FloatingSearchBar = memo(function FloatingSearchBar({
               placeholder="Search for cafes, workspaces, or chill spots..."
               autoFocus
               className={`w-full rounded-2xl ${panelBg} ${textColor} ${placeholderStyle} py-4 pr-14 pl-14 text-base outline-none`}
-              style={{
-                background: 'transparent',
-              }}
+              style={{ background: 'transparent' }}
             />
             <button
               onClick={onClose}
@@ -111,19 +126,18 @@ const FloatingSearchBar = memo(function FloatingSearchBar({
 });
 
 // Floating Filters Panel
-const FloatingFiltersPanel = memo(function FloatingFiltersPanel({ 
-  activeFilters, 
-  onFiltersChange, 
-  onClose, 
-  theme, 
-  modeColor 
-}: { 
-  activeFilters: string[]; 
-  onFiltersChange: (filters: string[]) => void; 
-  onClose: () => void; 
-  theme: Theme; 
+const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
+  activeFilters,
+  onFiltersChange,
+  onClose,
+  modeColor,
+}: {
+  activeFilters: string[];
+  onFiltersChange: (filters: string[]) => void;
+  onClose: () => void;
   modeColor: string;
 }) {
+  const theme = useTheme();
   const panelBg = theme === 'dark' ? 'bg-slate-800/95' : 'bg-white/95';
   const textColor = theme === 'dark' ? 'text-white' : 'text-slate-900';
   const subTextColor = theme === 'dark' ? 'text-slate-400' : 'text-slate-600';
@@ -137,31 +151,22 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
   };
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
   return (
     <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 z-[999] bg-black/20"
-        onClick={onClose}
-      />
-      
-      {/* Floating Filters Panel */}
+      <div className="fixed inset-0 z-[999] bg-black/20" onClick={onClose} />
       <div className="fixed left-20 top-8 z-[1002] w-80 px-4">
-        <div 
+        <div
           className={`rounded-2xl ${panelBg} p-6 shadow-2xl backdrop-blur-xl border`}
           style={{
             borderColor: `${modeColor}40`,
             boxShadow: `0 0 40px ${modeColor}20, 0 8px 32px rgba(0,0,0,0.3)`,
           }}
         >
-          {/* Header */}
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <SlidersHorizontal size={20} className={subTextColor} />
@@ -177,7 +182,6 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
             </button>
           </div>
 
-          {/* Filter Pills */}
           <div className="flex flex-wrap gap-2">
             {FILTER_OPTIONS.map((filter) => {
               const isActive = activeFilters.includes(filter.id);
@@ -203,7 +207,6 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
             })}
           </div>
 
-          {/* Active count */}
           {activeFilters.length > 0 && (
             <div className={`mt-4 pt-4 border-t ${theme === 'dark' ? 'border-slate-700' : 'border-slate-200'}`}>
               <div className="flex items-center justify-between">
@@ -212,7 +215,7 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
                 </span>
                 <button
                   onClick={() => onFiltersChange([])}
-                  className={`text-sm font-medium transition-colors`}
+                  className="text-sm font-medium transition-colors"
                   style={{ color: modeColor }}
                 >
                   Clear all
@@ -226,136 +229,154 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
   );
 });
 
-export default function MapView({ 
-  selectedMode, 
-  selectedLocation, 
-  onLocationSelect, 
-  searchQuery = '', 
-  onSearchChange, 
-  activeFilters = [], 
-  onFiltersChange, 
-  theme = 'dark',
+export default function MapView({
+  selectedMode,
+  selectedLocation,
+  onLocationSelect,
+  searchQuery = '',
+  onSearchChange,
+  activeFilters = [],
+  onFiltersChange,
   searchExpanded,
   onSearchExpandedChange,
   filtersExpanded,
-  onFiltersExpandedChange
+  onFiltersExpandedChange,
+  placeData,
 }: MapViewProps) {
-  // Locations data with real lat/lng coordinates
-  const locations = useMemo(() => ({
-    eat: [
-      { id: 'avo', lat: 35.1712, lng: 33.3616, name: 'Avo Armenian Food' },
-      { id: 'location2', lat: 35.1698, lng: 33.3701, name: 'Falafel No.1' },
-      { id: 'location3', lat: 35.1756, lng: 33.3744, name: 'Old Town Kitchen' },
-    ],
-    focus: [
-      { id: 'yfantourgeio', lat: 35.1741, lng: 33.3601, name: 'Yfantourgeio' },
-      { id: 'location5', lat: 35.1789, lng: 33.3623, name: 'State Coffee' },
-      { id: 'location6', lat: 35.1712, lng: 33.3667 },
-    ],
-    chill: [
-      { id: 'k11', lat: 35.1756, lng: 33.3612, name: 'K11' },
-      { id: 'location8', lat: 35.1734, lng: 33.3689 },
-      { id: 'location9', lat: 35.1801, lng: 33.3701 },
-    ],
-  }), []);
+  const theme = useTheme();
+
+  // All 21 locations — 7 per mode — with full metadata and feature tags
+  const locations = useMemo<Record<Mode, LocationEntry[]>>(
+    () => ({
+      eat: [
+        { id: 'avo', lat: 35.1712, lng: 33.3616, name: 'Avo Armenian Food', address: 'Onasagorou, Nicosia 1011', hours: '8am – 6pm', cuisine: 'Armenian + Cypriot', price: '€', atmosphere: 'Lively', seating: 'Very Limited', gmaps: 'https://www.google.com/maps/search/?api=1&query=Avo+Armenian+Food+Nicosia', features: ['budget', 'outdoor'] },
+        { id: 'piatsa', lat: 35.1735, lng: 33.3621, name: 'Piatsa Gourounaki', address: 'Klimentos 4, Nicosia 1060', hours: '12pm – 11pm', cuisine: 'Mediterranean BBQ', price: '€€', atmosphere: 'Vibrant', seating: 'Courtyard', gmaps: 'https://www.google.com/maps/search/?api=1&query=Piatsa+Gourounaki+Nicosia', features: ['outdoor', 'pet-friendly'] },
+        { id: 'zanettos', lat: 35.1748, lng: 33.3607, name: 'Zanettos Tavern', address: 'Trikoupi 65, Nicosia 1016', hours: '5pm – 11pm', cuisine: 'Traditional Cypriot', price: '€€', atmosphere: 'Authentic', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Zanettos+Tavern+Nicosia', features: ['premium'] },
+        { id: 'toanamma', lat: 35.1720, lng: 33.3580, name: 'To Anamma', address: 'Ledras 64, Nicosia 1011', hours: '11am – 11pm', cuisine: 'Cypriot Modern', price: '€€', atmosphere: 'Cozy Courtyard', seating: 'Outdoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=To+Anamma+Nicosia', features: ['outdoor', 'pet-friendly'] },
+        { id: 'elysian', lat: 35.1705, lng: 33.3640, name: 'Elysian Fusion Kitchen', address: 'Old Town, Nicosia', hours: '9am – 9pm', cuisine: 'Plant-Based Fusion', price: '€', atmosphere: 'Relaxed', seating: 'Indoor + Patio', gmaps: 'https://www.google.com/maps/search/?api=1&query=Elysian+Fusion+Kitchen+Nicosia', features: ['budget', 'outdoor'] },
+        { id: 'falafel', lat: 35.1698, lng: 33.3701, name: 'Falafel Abu Dany', address: 'Arsinois, Nicosia 1011', hours: '10am – 8pm', cuisine: 'Middle Eastern', price: '€', atmosphere: 'Casual', seating: 'Takeaway + Counter', gmaps: 'https://www.google.com/maps/search/?api=1&query=Falafel+Abu+Dany+Nicosia', features: ['budget'] },
+        { id: 'bellavita', lat: 35.1729, lng: 33.3658, name: 'Bella Vita', address: 'Old Town, Nicosia', hours: '12pm – 11pm', cuisine: 'Italian', price: '€€€', atmosphere: 'Garden Dining', seating: 'Garden', gmaps: 'https://www.google.com/maps/search/?api=1&query=Bella+Vita+Restaurant+Nicosia', features: ['premium', 'outdoor', 'pet-friendly'] },
+      ],
+      focus: [
+        { id: 'yfantourgeio', lat: 35.1741, lng: 33.3601, name: 'Yfantourgeio', address: 'Ermou 66, Nicosia 1011', hours: '8am – 10pm', cuisine: 'Coworking + Coffee', price: '€€', atmosphere: 'Creative', seating: 'Flexible Desks', gmaps: 'https://www.google.com/maps/search/?api=1&query=Yfantourgeio+Nicosia', features: ['wifi', 'power', 'outdoor'] },
+        { id: 'brewlab', lat: 35.1710, lng: 33.3575, name: 'Brew Lab', address: 'Stasikratous 3, Nicosia 1066', hours: '7am – 7pm', cuisine: 'Specialty Coffee', price: '€€', atmosphere: 'Focused', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Brew+Lab+Stasikratous+Nicosia', features: ['wifi', 'power'] },
+        { id: 'workshop', lat: 35.1695, lng: 33.3625, name: 'The Workshop Cafe', address: 'Old Town, Nicosia', hours: '8am – 6pm', cuisine: 'Coffee & Pastries', price: '€', atmosphere: 'Quiet & Studious', seating: 'Tables + Outlets', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Workshop+Cafe+Nicosia', features: ['wifi', 'power', 'budget'] },
+        { id: 'think30', lat: 35.1700, lng: 33.3555, name: 'Think 30', address: 'Stasikratous, Nicosia', hours: '8am – 8pm', cuisine: 'Coffee & Bites', price: '€€', atmosphere: 'Modern', seating: 'Indoor + Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Think+30+Stasikratous+Nicosia', features: ['wifi', 'power', 'outdoor'] },
+        { id: 'kofee', lat: 35.1725, lng: 33.3638, name: 'A Kxofee Project', address: 'Nicosia Old Town', hours: '7:30am – 5pm', cuisine: 'Specialty Coffee', price: '€', atmosphere: 'Busy & Creative', seating: 'Limited + Laptop-Friendly', gmaps: 'https://www.google.com/maps/search/?api=1&query=A+Kxofee+Project+Nicosia', features: ['wifi', 'budget'] },
+        { id: 'hub', lat: 35.1757, lng: 33.3596, name: 'The Hub Nicosia', address: 'Ermou, Nicosia', hours: '9am – 8pm', cuisine: 'Coworking Space', price: '€€', atmosphere: 'Professional', seating: 'Hot Desks + Meeting Rooms', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Hub+Nicosia+Coworking', features: ['wifi', 'power'] },
+        { id: 'pieto', lat: 35.1716, lng: 33.3608, name: 'Pieto Coffee', address: 'Old Town, Nicosia', hours: '7am – 6pm', cuisine: 'Artisan Coffee', price: '€', atmosphere: 'Minimalist', seating: 'Counter + Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=Pieto+Coffee+Nicosia', features: ['wifi', 'budget'] },
+      ],
+      chill: [
+        { id: 'k11', lat: 35.1756, lng: 33.3612, name: 'K11', address: 'Nicosia Old Town', hours: '10am – 12am', cuisine: 'Cocktails + Bites', price: '€€', atmosphere: 'Artsy & Eclectic', seating: 'Indoor + Courtyard', gmaps: 'https://www.google.com/maps/search/?api=1&query=K11+Bar+Nicosia', features: ['outdoor', 'pet-friendly'] },
+        { id: 'balza', lat: 35.1680, lng: 33.3587, name: 'Bálza Rooftop Bar', address: 'Evagoras, Megaro Hadjisavva, Nicosia', hours: '8pm – 1am', cuisine: 'Cocktails + Dining', price: '€€€', atmosphere: 'Rooftop Vibes', seating: 'Rooftop Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Balza+Rooftop+Bar+Nicosia', features: ['outdoor', 'premium'] },
+        { id: 'halara', lat: 35.1745, lng: 33.3632, name: 'Halara Cafe', address: 'Old Town, Nicosia', hours: '9am – 12am', cuisine: 'Coffee & Cocktails', price: '€', atmosphere: 'Laid-Back', seating: 'Indoor + Outdoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Halara+Cafe+Nicosia', features: ['outdoor', 'pet-friendly', 'budget'] },
+        { id: 'municipal', lat: 35.1690, lng: 33.3565, name: 'Nicosia Municipal Gardens', address: 'Mouseiou, Nicosia', hours: 'All day', cuisine: 'Park', price: 'Free', atmosphere: 'Green & Peaceful', seating: 'Benches + Lawn', gmaps: 'https://www.google.com/maps/search/?api=1&query=Nicosia+Municipal+Gardens', features: ['outdoor', 'pet-friendly', 'budget'] },
+        { id: 'skyview', lat: 35.1675, lng: 33.3610, name: 'SkyView Rooftop Bar', address: 'Nicosia Center', hours: '6pm – 1am', cuisine: 'Cocktails', price: '€€€', atmosphere: 'Sunset Views', seating: 'Rooftop', gmaps: 'https://www.google.com/maps/search/?api=1&query=SkyView+Rooftop+Bar+Nicosia', features: ['outdoor', 'premium'] },
+        { id: 'famagusta', lat: 35.1718, lng: 33.3710, name: 'Famagusta Gate Area', address: 'Athinas Ave, Nicosia 1016', hours: 'All day', cuisine: 'Cultural Landmark', price: 'Free', atmosphere: 'Historic & Calm', seating: 'Open-Air', gmaps: 'https://www.google.com/maps/search/?api=1&query=Famagusta+Gate+Nicosia', features: ['outdoor', 'pet-friendly', 'budget'] },
+        { id: 'katakwa', lat: 35.1738, lng: 33.3645, name: 'Katakwa Culture Cafe', address: 'Armenias 53E, Nicosia 2003', hours: '9am – 8pm', cuisine: 'Vegan Treats + Coffee', price: '€', atmosphere: 'Tribal Art Vibes', seating: 'Cozy Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Katakwa+Culture+Art+Cafe+Nicosia', features: ['budget'] },
+      ],
+    }),
+    []
+  );
 
   const currentLocations = useMemo(() => locations[selectedMode], [locations, selectedMode]);
 
-  const colorData = MODE_COLORS[selectedMode];
+  // Apply search (name + cuisine) and feature filters
+  const filteredLocations = useMemo(() => {
+    let result = currentLocations;
 
-  // Leaflet map instance ref
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (loc) =>
+          loc.name.toLowerCase().includes(q) ||
+          (loc.cuisine && loc.cuisine.toLowerCase().includes(q))
+      );
+    }
+
+    if (activeFilters.length > 0) {
+      result = result.filter((loc) =>
+        activeFilters.every((f) => loc.features.includes(f))
+      );
+    }
+
+    return result;
+  }, [currentLocations, searchQuery, activeFilters]);
+
+  const colorData = getModeColorData(selectedMode, theme);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
-  // Map control handlers
-  const handleZoomIn = () => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.zoomIn();
-    }
-  };
-
-  const handleZoomOut = () => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.zoomOut();
-    }
-  };
-
+  const handleZoomIn = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomIn(); };
+  const handleZoomOut = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomOut(); };
   const handleResetView = () => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView([35.1856, 33.3823], 14);
-    }
+    if (mapInstanceRef.current) mapInstanceRef.current.setView([35.1856, 33.3823], 14);
   };
 
-  // Theme-based colors
   const bgColor = theme === 'dark' ? 'bg-slate-900' : 'bg-slate-50';
   const controlBg = theme === 'dark' ? 'bg-slate-800' : 'bg-white';
   const controlHover = theme === 'dark' ? 'hover:bg-slate-700' : 'hover:bg-slate-100';
   const controlText = theme === 'dark' ? 'text-slate-200' : 'text-slate-700';
 
+  // Derive card data — only show if the selected location is in the filtered set
+  const selectedLocationData = currentLocations.find((l) => l.id === selectedLocation) ?? null;
+  const isSelectedVisible = filteredLocations.some((l) => l.id === selectedLocation);
+
   return (
     <div className={`absolute inset-0 left-16 transition-colors duration-300 ${bgColor}`}>
-      {/* Live Map */}
+      {/* Live Map — receives only filtered locations */}
       <div className="h-full w-full">
-        <LiveMap 
+        <LiveMap
           selectedMode={selectedMode}
-          locations={currentLocations}
+          locations={filteredLocations}
           selectedLocation={selectedLocation}
           onLocationSelect={(id) => onLocationSelect(id)}
           onMapReady={(map) => { mapInstanceRef.current = map; }}
-          theme={theme}
         />
       </div>
 
       {/* Custom Zoom Controls */}
       <div className="absolute bottom-4 right-4 z-[500] flex flex-col gap-2">
-        <button
-          onClick={handleZoomIn}
-          className={`flex h-10 w-10 items-center justify-center rounded-lg ${controlBg} shadow-lg transition-all duration-200 ${controlHover}`}
-          aria-label="Zoom in"
-        >
+        <button onClick={handleZoomIn} className={`flex h-10 w-10 items-center justify-center rounded-lg ${controlBg} shadow-lg transition-all duration-200 ${controlHover}`} aria-label="Zoom in">
           <Plus size={20} className={controlText} />
         </button>
-        <button
-          onClick={handleResetView}
-          className={`flex h-10 w-10 items-center justify-center rounded-lg ${controlBg} shadow-lg transition-all duration-200 ${controlHover}`}
-          aria-label="Reset view"
-        >
+        <button onClick={handleResetView} className={`flex h-10 w-10 items-center justify-center rounded-lg ${controlBg} shadow-lg transition-all duration-200 ${controlHover}`} aria-label="Reset view">
           <Home size={20} className={controlText} />
         </button>
-        <button
-          onClick={handleZoomOut}
-          className={`flex h-10 w-10 items-center justify-center rounded-lg ${controlBg} shadow-lg transition-all duration-200 ${controlHover}`}
-          aria-label="Zoom out"
-        >
+        <button onClick={handleZoomOut} className={`flex h-10 w-10 items-center justify-center rounded-lg ${controlBg} shadow-lg transition-all duration-200 ${controlHover}`} aria-label="Zoom out">
           <Minus size={20} className={controlText} />
         </button>
       </div>
 
-      {/* Location Card */}
-      {selectedLocation && (
-        <div className="absolute bottom-4 left-20 right-4 z-[1000] mx-auto max-w-md">
+      {/* Location Card — only shown when selected location passes current filters */}
+      {selectedLocation && isSelectedVisible && (
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-[1000]" style={{ maxWidth: 448 }}>
           <LocationCard
             locationId={selectedLocation}
+            locationData={selectedLocationData}
             onClose={() => onLocationSelect(null)}
             mode={selectedMode}
+            placeData={placeData[selectedLocation] ?? null}
           />
         </div>
       )}
 
-      {/* Modals */}
-      {searchExpanded && <FloatingSearchBar 
-        searchQuery={searchQuery} 
-        onSearchChange={onSearchChange} 
-        onClose={() => onSearchExpandedChange(false)} 
-        theme={theme} 
-        modeColor={colorData.main}
-      />}
-      {filtersExpanded && <FloatingFiltersPanel 
-        activeFilters={activeFilters} 
-        onFiltersChange={onFiltersChange} 
-        onClose={() => onFiltersExpandedChange(false)} 
-        theme={theme} 
-        modeColor={colorData.main}
-      />}
+      {/* Search + Filter panels */}
+      {searchExpanded && (
+        <FloatingSearchBar
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          onClose={() => onSearchExpandedChange(false)}
+          modeColor={colorData.main}
+        />
+      )}
+      {filtersExpanded && (
+        <FloatingFiltersPanel
+          activeFilters={activeFilters}
+          onFiltersChange={onFiltersChange}
+          onClose={() => onFiltersExpandedChange(false)}
+          modeColor={colorData.main}
+        />
+      )}
     </div>
   );
 }
