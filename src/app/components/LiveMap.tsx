@@ -224,7 +224,7 @@ export default function LiveMap({
         : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
     tileLayerRef.current = L.tileLayer(tileUrl, {
-      attribution: '© Stadia Maps © OpenMapTiles © OpenStreetMap',
+      attribution: '© OpenStreetMap contributors © CARTO',
       maxZoom: 20,
     }).addTo(mapRef.current);
   }, [theme]);
