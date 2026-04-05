@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import type { PlaceApiData } from './components/LocationCard';
@@ -122,7 +122,7 @@ export default function App() {
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [placeData, setPlaceData] = useState<Record<string, PlaceApiData>>({});
-  const [photoBlobUrls, setPhotoBlobUrls] = useState<string[]>([]);
+  const photoBlobUrlsRef = useRef<string[]>([]);
 
   // Fetch Google Places data for all 21 locations on mount.
   // Uses Promise.allSettled so a single failure never blocks the others.
@@ -172,7 +172,7 @@ export default function App() {
       }
 
       setPlaceData(merged);
-      setPhotoBlobUrls(createdBlobUrls);
+      photoBlobUrlsRef.current = createdBlobUrls;
     };
 
     fetchAll();
@@ -184,9 +184,9 @@ export default function App() {
 
   useEffect(() => {
     return () => {
-      photoBlobUrls.forEach((url) => URL.revokeObjectURL(url));
+      photoBlobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [photoBlobUrls]);
+  }, []);
 
   return (
     <ThemeContext.Provider value={theme}>
