@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import type { PlaceApiData } from './components/LocationCard';
@@ -122,11 +122,13 @@ export default function App() {
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [placeData, setPlaceData] = useState<Record<string, PlaceApiData>>({});
+  const photoBlobUrlsRef = useRef<string[]>([]);
 
   // Fetch Google Places data for all 21 locations on mount.
   // Uses Promise.allSettled so a single failure never blocks the others.
   // All errors are silently swallowed — the UI falls back to hardcoded values.
   useEffect(() => {
+    let isMounted = true;
     const fetchAll = async () => {
       const results = await Promise.allSettled(
         Object.entries(LOCATION_NAMES).map(async ([id, locationName]) => {
@@ -136,16 +138,54 @@ export default function App() {
       );
 
       const merged: Record<string, PlaceApiData> = {};
-      results.forEach((result) => {
+      const createdBlobUrls: string[] = [];
+      await Promise.all(results.map(async (result) => {
         if (result.status === 'fulfilled') {
-          merged[result.value.id] = result.value.data;
+          const sourcePhotoUrls = result.value.data.photoUrls ?? [];
+          let blobUrls: string[] | undefined;
+
+          if (sourcePhotoUrls.length > 0) {
+            try {
+              blobUrls = await Promise.all(
+              sourcePhotoUrls.map(async (url) => {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                return URL.createObjectURL(blob);
+              })
+              );
+              createdBlobUrls.push(...blobUrls);
+            } catch {
+              // Ignore photo failures; card will render without images.
+            }
+          }
+
+          merged[result.value.id] = {
+            ...result.value.data,
+            photoUrls: blobUrls,
+          };
         }
-      });
+      }));
+
+      if (!isMounted) {
+        createdBlobUrls.forEach((url) => URL.revokeObjectURL(url));
+        return;
+      }
 
       setPlaceData(merged);
+      photoBlobUrlsRef.current = createdBlobUrls;
     };
 
     fetchAll();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      photoBlobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
   }, []);
 
   return (
