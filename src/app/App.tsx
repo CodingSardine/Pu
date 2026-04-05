@@ -89,7 +89,7 @@ async function fetchPlaceByName(locationName: string): Promise<PlaceApiData> {
       const photoName = place.photos[i]?.name;
       if (photoName) {
         photoUrls.push(
-          `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=600&skipHttpRedirect=true&key=${GOOGLE_PLACES_API_KEY}`
+          `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=600&key=${GOOGLE_PLACES_API_KEY}`
         );
       }
     }
