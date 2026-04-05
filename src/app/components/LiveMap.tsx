@@ -193,9 +193,11 @@ export default function LiveMap({
     });
 
     const tileLayer = L.tileLayer(
-      `https://tiles.stadiamaps.com/tiles/${theme === 'dark' ? 'alidade_smooth_dark' : 'alidade_smooth'}/{z}/{x}/{y}{r}.png`,
-      { attribution: '© Stadia Maps © OpenMapTiles © OpenStreetMap', maxZoom: 20 }
-    ).addTo(map);
+      theme === 'dark'
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  { attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 20 }
+).addTo(map);
 
     tileLayerRef.current = tileLayer;
     mapRef.current = map;
@@ -218,8 +220,8 @@ export default function LiveMap({
 
     const tileUrl =
       theme === 'dark'
-        ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
-        : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png';
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
     tileLayerRef.current = L.tileLayer(tileUrl, {
       attribution: '© Stadia Maps © OpenMapTiles © OpenStreetMap',
