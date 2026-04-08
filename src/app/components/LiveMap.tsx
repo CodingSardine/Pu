@@ -192,6 +192,57 @@ function addMarkersToMap(
           map.panBy([offsetX, offsetY], { animate: true, duration: 0.4 });
         }
         onLocationSelect(location.id);
+      })
+      .on('mouseover', (e) => {
+        const marker = e.target;
+        const el = marker.getElement();
+        if (el) {
+          // Create or show the hover pill
+          let pill = el.querySelector('.marker-hover-pill');
+          if (!pill) {
+            pill = document.createElement('div');
+            pill.className = 'marker-hover-pill';
+            pill.innerHTML = location.name || '';
+            pill.style.cssText = `
+              position: absolute;
+              bottom: 100%;
+              left: 50%;
+              transform: translateX(-50%) translateY(-8px);
+              background: ${theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
+              color: ${theme === 'dark' ? 'white' : '#0f172a'};
+              padding: 4px 10px;
+              border-radius: 8px;
+              font-size: 11px;
+              font-weight: 600;
+              white-space: nowrap;
+              pointer-events: none;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+              z-index: 1000;
+              opacity: 0;
+              transition: all 0.2s ease;
+              backdrop-filter: blur(8px);
+            `;
+            el.appendChild(pill);
+          }
+          // Trigger animation
+          setTimeout(() => {
+            (pill as HTMLElement).style.opacity = '1';
+            (pill as HTMLElement).style.transform = 'translateX(-50%) translateY(-12px)';
+          }, 10);
+        }
+      })
+      .on('mouseout', (e) => {
+        const el = e.target.getElement();
+        if (el) {
+          const pill = el.querySelector('.marker-hover-pill') as HTMLElement;
+          if (pill) {
+            pill.style.opacity = '0';
+            pill.style.transform = 'translateX(-50%) translateY(-8px)';
+            // Remove after transition
+            setTimeout(() => pill.remove(), 200);
+          }
+        }
       });
 
     markersRef.current[location.id] = marker;

@@ -40,7 +40,7 @@ export default function ModeTransitionOverlay({
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const duration = 600; // milliseconds
+    const duration = 1000; // Increase duration for smoother feel
     const toColor = MODE_COLORS[toMode];
 
     // Calculate the maximum distance from trigger point to any corner
@@ -51,7 +51,8 @@ export default function ModeTransitionOverlay({
       Math.sqrt(Math.pow(triggerX, 2) + Math.pow(canvas.height - triggerY, 2)), // bottom-left
       Math.sqrt(Math.pow(canvas.width - triggerX, 2) + Math.pow(canvas.height - triggerY, 2)), // bottom-right
     ];
-    const maxDistance = Math.max(...distances);
+    // Use 1.5x maxDistance to ensure the gradient tail also clears the screen
+    const maxDistance = Math.max(...distances) * 1.5;
 
     const animate = (currentTime: number) => {
       if (startTimeRef.current === 0) {
@@ -77,15 +78,24 @@ export default function ModeTransitionOverlay({
         currentRadius
       );
 
-      // Smooth gradient with easing for better fade-out
-      // Use easeOutQuad for smooth deceleration
-      const easeProgress = 1 - Math.pow(1 - progress, 2);
+      // Calculate opacity: start at 0.6 max opacity and fade out
+      let opacity = 0.6;
+      if (progress > 0.3) {
+        // Linear fade from 0.6 to 0 between 30% and 100% progress
+        opacity = 0.6 * (1 - (progress - 0.3) / 0.7);
+      }
       
-      // Gradient stops: opaque center, smooth fade to transparent at edge
-      gradient.addColorStop(0, toColor + 'ff'); // Fully opaque at center
-      gradient.addColorStop(0.5, toColor + 'cc'); // 80% opacity at midpoint
-      gradient.addColorStop(0.85, toColor + '60'); // 37% opacity
-      gradient.addColorStop(1, toColor + '00'); // Fully transparent at edge
+      // Convert hex to rgba for dynamic opacity
+      const r = parseInt(toColor.slice(1, 3), 16);
+      const g = parseInt(toColor.slice(3, 5), 16);
+      const b = parseInt(toColor.slice(5, 7), 16);
+      const baseColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      const fadeColor = `rgba(${r}, ${g}, ${b}, 0)`;
+
+      // Gradient stops: semi-opaque center, smooth fade to transparent at edge
+      gradient.addColorStop(0, baseColor);
+      gradient.addColorStop(0.5, baseColor);
+      gradient.addColorStop(1, fadeColor);
 
       // Fill with gradient
       ctx.fillStyle = gradient;

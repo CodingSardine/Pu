@@ -219,10 +219,7 @@ export default function App() {
           selectedLocation={selectedLocation}
           onLocationSelect={(id) => {
             setSelectedLocation(id);
-            // If user clicks a marker in all-mode, switch to that marker's mode
-            if (showAllMarkers && id) {
-              setShowAllMarkers(false);
-            }
+            // Keep showing all markers when clicking a marker in all-mode
           }}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
