@@ -10,14 +10,17 @@ interface Location {
   lat: number;
   lng: number;
   name?: string;
+  mode?: Mode;
 }
 
 interface LiveMapProps {
   selectedMode: Mode;
+  showAllMarkers: boolean;
   locations: Location[];
   selectedLocation: string | null;
   onLocationSelect: (id: string) => void;
   onMapReady?: (map: L.Map) => void;
+  allLocations?: Location[];
 }
 
 const MODE_COLORS = {
@@ -44,18 +47,39 @@ L.Icon.Default.mergeOptions({
   shadowUrl: '',
 });
 
-function buildIcon(modeColor: string, isSelected: boolean, enterDelay = 0, animate = false, theme: 'dark' | 'light' = 'dark') {
+function buildIcon(
+  modeColor: string,
+  isSelected: boolean,
+  enterDelay = 0,
+  animate = false,
+  theme: 'dark' | 'light' = 'dark',
+  isAllMode = false,
+  markerMode?: Mode,
+  markerTitle?: string,
+) {
   const size = isSelected ? 36 : 28;
   const pinHeight = isSelected ? 46 : 36;
-  
-  // For light mode, use richer, more saturated colors with better contrast
-  const markerFill = theme === 'light' 
-    ? (isSelected ? modeColor : modeColor) 
-    : modeColor;
-  
-  const centerDotFill = theme === 'light' ? 'white' : 'white';
-  
+
+  const markerFill = modeColor;
+  const centerDotFill = 'white';
   const shadowColor = theme === 'light' ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.4)';
+
+  // In all-markers mode, add a subtle mode-colored glow ring around each marker
+  const allModeRing = isAllMode && !isSelected
+    ? `<div style="
+        position: absolute;
+        left: 50%;
+        top: 35%;
+        transform: translate(-50%, -50%);
+        width: ${size + 8}px;
+        height: ${size + 8}px;
+        border-radius: 50%;
+        border: 1.5px solid ${modeColor}80;
+        pointer-events: none;
+        animation: allModeRingPulse 2.5s ease-in-out infinite;
+        animation-delay: ${enterDelay % 600}ms;
+      "></div>`
+    : '';
 
   const html = `
     <div style="
@@ -64,7 +88,7 @@ function buildIcon(modeColor: string, isSelected: boolean, enterDelay = 0, anima
       height: ${pinHeight}px;
       cursor: pointer;
       ${animate ? `animation: markerDrop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${enterDelay}ms both;` : ''}
-    ">
+    " title="${markerTitle || 'Location'}">
       ${isSelected ? `
         <div style="
           position: absolute;
@@ -80,11 +104,12 @@ function buildIcon(modeColor: string, isSelected: boolean, enterDelay = 0, anima
           pointer-events: none;
         "></div>
       ` : ''}
+      ${allModeRing}
       <svg
         width="${size}"
         height="${pinHeight}"
         viewBox="0 0 28 36"
-        style="position: relative; z-index: 10; filter: drop-shadow(0 4px 6px ${shadowColor}); cursor: pointer;"
+        style="position: relative; z-index: 10; filter: drop-shadow(0 4px 6px ${shadowColor})${isAllMode ? ` drop-shadow(0 0 4px ${modeColor}60)` : ''}; cursor: pointer;"
       >
         <path
           d="M14 0C7.373 0 2 5.373 2 12c0 8 12 24 12 24s12-16 12-24c0-6.627-5.373-12-12-12z"
@@ -107,11 +132,12 @@ function addMarkersToMap(
   map: L.Map,
   locations: Location[],
   selectedLocation: string | null,
-  modeColor: string,
+  defaultModeColor: string,
   markersRef: React.MutableRefObject<{ [key: string]: L.Marker }>,
   onLocationSelect: (id: string) => void,
   stagger: boolean,
   theme: 'dark' | 'light' = 'dark',
+  showAllMarkers = false,
 ) {
   locations.forEach((location, index) => {
     // Validate coordinates before creating marker
@@ -122,16 +148,21 @@ function addMarkersToMap(
     }
 
     const isSelected = selectedLocation === location.id;
-    const delay = stagger ? index * 80 : 0;
-    const icon = buildIcon(modeColor, isSelected, delay, stagger, theme);
+    const delay = stagger ? index * 60 : 0;
+
+    // In all-markers mode, use the location's own mode color
+    const markerColor = showAllMarkers && location.mode
+      ? getModeColor(location.mode, theme)
+      : defaultModeColor;
+
+    const icon = buildIcon(markerColor, isSelected, delay, stagger, theme, showAllMarkers, location.mode, location.name);
 
     // Create marker with explicit coordinates
     const latLng = L.latLng(location.lat, location.lng);
-    const marker = L.marker(latLng, { 
-      icon, 
+    const marker = L.marker(latLng, {
+      icon,
       interactive: true,
-      // Ensure marker has explicit position before adding to map
-      opacity: stagger ? 0 : 1
+      opacity: stagger ? 0 : 1,
     });
 
     // If staggered animation, fade in after delay
@@ -169,10 +200,12 @@ function addMarkersToMap(
 
 export default function LiveMap({
   selectedMode,
+  showAllMarkers,
   locations,
   selectedLocation,
   onLocationSelect,
   onMapReady,
+  allLocations,
 }: LiveMapProps) {
   const theme = useTheme();
   const mapRef = useRef<L.Map | null>(null);
@@ -180,6 +213,7 @@ export default function LiveMap({
   const markersRef = useRef<{ [key: string]: L.Marker }>({});
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const prevModeRef = useRef<Mode>(selectedMode);
+  const prevShowAllRef = useRef<boolean>(showAllMarkers);
   const transitionLockRef = useRef(false);
 
   // Initialize map
@@ -194,10 +228,10 @@ export default function LiveMap({
 
     const tileLayer = L.tileLayer(
       theme === 'dark'
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  { attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 20 }
-).addTo(map);
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      { attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 20 }
+    ).addTo(map);
 
     tileLayerRef.current = tileLayer;
     mapRef.current = map;
@@ -229,16 +263,22 @@ export default function LiveMap({
     }).addTo(mapRef.current);
   }, [theme]);
 
-  // Update markers — with transition when mode changes, instant otherwise
+  // Update markers — with transition when mode or all-markers state changes, instant otherwise
   useEffect(() => {
     if (!mapRef.current) return;
 
     const map = mapRef.current;
     const modeColor = getModeColor(selectedMode, theme);
     const isModeChange = prevModeRef.current !== selectedMode;
+    const isAllMarkersChange = prevShowAllRef.current !== showAllMarkers;
     prevModeRef.current = selectedMode;
+    prevShowAllRef.current = showAllMarkers;
 
-    if (isModeChange && !transitionLockRef.current && Object.keys(markersRef.current).length > 0) {
+    const needsTransition = (isModeChange || isAllMarkersChange) &&
+      !transitionLockRef.current &&
+      Object.keys(markersRef.current).length > 0;
+
+    if (needsTransition) {
       // Lock to prevent re-entry during async transition
       transitionLockRef.current = true;
 
@@ -261,18 +301,18 @@ export default function LiveMap({
       // 4. After exit animation, add new markers with staggered drop
       const exitDuration = 220;
       const timer = setTimeout(() => {
-        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, true, theme);
+        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, true, theme, showAllMarkers);
         transitionLockRef.current = false;
       }, exitDuration);
 
       return () => clearTimeout(timer);
-    } else if (!isModeChange) {
+    } else if (!isModeChange && !isAllMarkersChange) {
       // Selection change or initial load — just refresh markers instantly
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
-      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, false, theme);
+      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, false, theme, showAllMarkers);
     }
-  }, [locations, selectedLocation, selectedMode, onLocationSelect, theme]);
+  }, [locations, selectedLocation, selectedMode, showAllMarkers, onLocationSelect, theme]);
 
   return (
     <>
@@ -312,6 +352,16 @@ export default function LiveMap({
           100% {
             opacity: 0;
             transform: scale(0.3) translateY(10px);
+          }
+        }
+        @keyframes allModeRingPulse {
+          0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.5;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.4);
+            opacity: 0;
           }
         }
         .custom-marker {

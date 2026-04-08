@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
+import ModeTransitionOverlay from './components/ModeTransitionOverlay';
 import type { PlaceApiData } from './components/LocationCard';
 import ThemeContext from './context/ThemeContext';
 
@@ -115,6 +116,7 @@ async function fetchPlaceByName(locationName: string): Promise<PlaceApiData> {
 
 export default function App() {
   const [selectedMode, setSelectedMode] = useState<Mode>('eat');
+  const [showAllMarkers, setShowAllMarkers] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -122,6 +124,10 @@ export default function App() {
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [placeData, setPlaceData] = useState<Record<string, PlaceApiData>>({});
+  const [transitionActive, setTransitionActive] = useState(false);
+  const [transitionFrom, setTransitionFrom] = useState<Mode>('eat');
+  const [transitionTo, setTransitionTo] = useState<Mode>('eat');
+  const [transitionTrigger, setTransitionTrigger] = useState({ x: 0, y: 0 });
   const photoBlobUrlsRef = useRef<string[]>([]);
 
   // Fetch Google Places data for all 21 locations on mount.
@@ -188,6 +194,18 @@ export default function App() {
     };
   }, []);
 
+  const handleLogoClick = () => {
+    if (showAllMarkers) {
+      // Return to the current mode view
+      setShowAllMarkers(false);
+      setSelectedLocation(null);
+    } else {
+      // Enter all-markers view
+      setShowAllMarkers(true);
+      setSelectedLocation(null);
+    }
+  };
+
   return (
     <ThemeContext.Provider value={theme}>
       <div
@@ -197,8 +215,15 @@ export default function App() {
       >
         <MapView
           selectedMode={selectedMode}
+          showAllMarkers={showAllMarkers}
           selectedLocation={selectedLocation}
-          onLocationSelect={setSelectedLocation}
+          onLocationSelect={(id) => {
+            setSelectedLocation(id);
+            // If user clicks a marker in all-mode, switch to that marker's mode
+            if (showAllMarkers && id) {
+              setShowAllMarkers(false);
+            }
+          }}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           activeFilters={activeFilters}
@@ -208,12 +233,24 @@ export default function App() {
           filtersExpanded={filtersExpanded}
           onFiltersExpandedChange={setFiltersExpanded}
           placeData={placeData}
+          onModeChange={setSelectedMode}
         />
         <Sidebar
           selectedMode={selectedMode}
-          onModeChange={(mode) => {
+          showAllMarkers={showAllMarkers}
+          onModeChange={(mode, event) => {
+            if (mode !== selectedMode && event) {
+              const rect = event.currentTarget.getBoundingClientRect();
+              const centerX = rect.left + rect.width / 2;
+              const centerY = rect.top + rect.height / 2;
+              setTransitionFrom(selectedMode);
+              setTransitionTo(mode);
+              setTransitionTrigger({ x: centerX, y: centerY });
+              setTransitionActive(true);
+            }
             setSelectedMode(mode);
             setSelectedLocation(null);
+            setShowAllMarkers(false);
           }}
           onThemeChange={setTheme}
           onSearchToggle={() => {
@@ -227,6 +264,15 @@ export default function App() {
           activeFilters={activeFilters}
           searchExpanded={searchExpanded}
           filtersExpanded={filtersExpanded}
+          onLogoClick={handleLogoClick}
+        />
+        <ModeTransitionOverlay
+          isActive={transitionActive}
+          fromMode={transitionFrom}
+          toMode={transitionTo}
+          triggerX={transitionTrigger.x}
+          triggerY={transitionTrigger.y}
+          onComplete={() => setTransitionActive(false)}
         />
       </div>
     </ThemeContext.Provider>
