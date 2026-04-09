@@ -266,6 +266,9 @@ export default function LiveMap({
   const prevModeRef = useRef<Mode>(selectedMode);
   const prevShowAllRef = useRef<boolean>(showAllMarkers);
   const transitionLockRef = useRef(false);
+  // Keep a stable ref to the callback so it never triggers marker recreation
+  const onLocationSelectRef = useRef(onLocationSelect);
+  useEffect(() => { onLocationSelectRef.current = onLocationSelect; });
 
   // Initialize map
   useEffect(() => {
@@ -352,7 +355,7 @@ export default function LiveMap({
       // 4. After exit animation, add new markers with staggered drop
       const exitDuration = 220;
       const timer = setTimeout(() => {
-        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, true, theme, showAllMarkers);
+        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelectRef.current, true, theme, showAllMarkers);
         transitionLockRef.current = false;
       }, exitDuration);
 
@@ -361,9 +364,9 @@ export default function LiveMap({
       // Selection change or initial load — just refresh markers instantly
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
-      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, false, theme, showAllMarkers);
+      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelectRef.current, false, theme, showAllMarkers);
     }
-  }, [locations, selectedLocation, selectedMode, showAllMarkers, onLocationSelect, theme]);
+  }, [locations, selectedLocation, selectedMode, showAllMarkers, theme]);
 
   return (
     <>
