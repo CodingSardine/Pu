@@ -316,6 +316,7 @@ export default function Sidebar({
               return (
                 <button
                   key={mode.key}
+                  
                   ref={(el) => { modeButtonsRef.current[mode.key] = el; }}
                   onClick={(e) => handleModeClick(mode.key, mode.label, e)}
                   className={`flex h-12 w-12 items-center justify-center rounded-xl outline-none focus:outline-none transition-all duration-300 ${
@@ -427,10 +428,10 @@ export default function Sidebar({
       >
         {modeToast && (
           <div
-            className="rounded-full px-3 py-1.5 text-sm font-bold text-white whitespace-nowrap flex items-center animate-mode-toast"
+            className="rounded-full px-4 py-2 text-sm font-bold text-white whitespace-nowrap shadow-lg"
             style={{
               backgroundColor: getModeColor(modeToast.mode, theme),
-              boxShadow: `0 0 20px ${getModeColor(modeToast.mode, theme)}60, 0 4px 12px ${getModeColor(modeToast.mode, theme)}40`,
+              boxShadow: `0 0 20px ${getModeColor(modeToast.mode, theme)}60`,
             }}
           >
             {modeToast.label}

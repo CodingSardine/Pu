@@ -125,9 +125,7 @@ export default function App() {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [placeData, setPlaceData] = useState<Record<string, PlaceApiData>>({});
   const [transitionActive, setTransitionActive] = useState(false);
-  const [transitionFrom, setTransitionFrom] = useState<Mode>('eat');
   const [transitionTo, setTransitionTo] = useState<Mode>('eat');
-  const [transitionTrigger, setTransitionTrigger] = useState({ x: 0, y: 0 });
   const photoBlobUrlsRef = useRef<string[]>([]);
 
   // Fetch Google Places data for all 21 locations on mount.
@@ -235,19 +233,17 @@ export default function App() {
         <Sidebar
           selectedMode={selectedMode}
           showAllMarkers={showAllMarkers}
-          onModeChange={(mode, event) => {
-            if (mode !== selectedMode && event) {
-              const rect = event.currentTarget.getBoundingClientRect();
-              const centerX = rect.left + rect.width / 2;
-              const centerY = rect.top + rect.height / 2;
-              setTransitionFrom(selectedMode);
+          onModeChange={(mode) => {
+            if (mode !== selectedMode) {
               setTransitionTo(mode);
-              setTransitionTrigger({ x: centerX, y: centerY });
               setTransitionActive(true);
+              setSelectedLocation(null);
+              setShowAllMarkers(false);
+            } else {
+              setSelectedMode(mode);
+              setSelectedLocation(null);
+              setShowAllMarkers(false);
             }
-            setSelectedMode(mode);
-            setSelectedLocation(null);
-            setShowAllMarkers(false);
           }}
           onThemeChange={setTheme}
           onSearchToggle={() => {
@@ -265,10 +261,8 @@ export default function App() {
         />
         <ModeTransitionOverlay
           isActive={transitionActive}
-          fromMode={transitionFrom}
           toMode={transitionTo}
-          triggerX={transitionTrigger.x}
-          triggerY={transitionTrigger.y}
+          onMidpoint={() => setSelectedMode(transitionTo)}
           onComplete={() => setTransitionActive(false)}
         />
       </div>
