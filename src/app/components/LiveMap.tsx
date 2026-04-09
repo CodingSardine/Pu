@@ -272,7 +272,7 @@ export default function LiveMap({
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
-      center: [35.1856, 33.3823],
+      center: [35.1720, 33.3620],
       zoom: 14,
       zoomControl: false,
     });

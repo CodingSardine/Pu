@@ -374,7 +374,7 @@ export default function MapView({
   const handleZoomIn = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomIn(); };
   const handleZoomOut = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomOut(); };
   const handleResetView = () => {
-    if (mapInstanceRef.current) mapInstanceRef.current.setView([35.1856, 33.3823], 14);
+    if (mapInstanceRef.current) mapInstanceRef.current.setView([35.1720, 33.3620], 14);
   };
 
   const bgColor = theme === 'dark' ? 'bg-slate-900' : 'bg-slate-50';
