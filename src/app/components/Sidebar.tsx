@@ -316,7 +316,7 @@ export default function Sidebar({
               return (
                 <button
                   key={mode.key}
-                  ref={(el) => (modeButtonsRef.current[mode.key] = el)}
+                  ref={(el) => { modeButtonsRef.current[mode.key] = el; }}
                   onClick={(e) => handleModeClick(mode.key, mode.label, e)}
                   className={`flex h-12 w-12 items-center justify-center rounded-xl outline-none focus:outline-none transition-all duration-300 ${
                     isActive
@@ -416,6 +416,26 @@ export default function Sidebar({
         >
           {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
         </button>
+      </div>
+
+      {/* Mode toast - fixed position, centered */}
+      <div
+        className="fixed z-[1200] top-4 left-1/2 -translate-x-1/2 md:left-[4.5rem] md:translate-x-0"
+        style={{
+          transition: 'transform 0.6s ease',
+        }}
+      >
+        {modeToast && (
+          <div
+            className="rounded-full px-3 py-1.5 text-sm font-bold text-white whitespace-nowrap flex items-center animate-mode-toast"
+            style={{
+              backgroundColor: getModeColor(modeToast.mode, theme),
+              boxShadow: `0 0 20px ${getModeColor(modeToast.mode, theme)}60, 0 4px 12px ${getModeColor(modeToast.mode, theme)}40`,
+            }}
+          >
+            {modeToast.label}
+          </div>
+        )}
       </div>
 
       {/* Mobile bottom navigation */}

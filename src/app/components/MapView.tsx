@@ -394,7 +394,7 @@ export default function MapView({
   };
 
   return (
-    <div className={`absolute inset-0 md:left-16 left-0 md:bottom-0 bottom-16 transition-colors duration-300 ${bgColor}`}>
+    <div className="absolute inset-0 left-0 bottom-16 md:left-16 md:bottom-0">
       {/* Legend keyframes */}
       <style>{`
         @keyframes legendFadeIn {
@@ -434,7 +434,8 @@ export default function MapView({
 
       {/* Location Card — only shown when selected location passes current filters */}
       {selectedLocation && isSelectedVisible && (
-        <div className="absolute md:left-4 md:top-1/2 md:-translate-y-1/2 md:bottom-auto left-0 bottom-0 right-0 md:right-auto z-[1000] md:max-w-[448px] w-full">
+        <div className="fixed bottom-0 left-0 right-0 z-[1002] md:absolute md:left-4 md:top-1/2 md:right-auto md:bottom-auto md:-translate-y-1/2">
+          <div className="mx-auto mb-2 mt-2 h-1.5 w-12 rounded-full bg-white/30 md:hidden" />
           <LocationCard
             locationId={selectedLocation}
             locationData={selectedLocationData}
