@@ -49,7 +49,7 @@ const LOCATION_NAMES: Record<string, string> = {
   hub: 'The Hub Nicosia',
   pieto: 'Pieto Coffee',
   // Chill mode
-  k11: 'K11',
+  k11: 'Kafeneio 11',
   balza: 'Bálza Rooftop Bar',
   halara: 'Halara Cafe',
   municipal: 'Nicosia Municipal Gardens',
