@@ -164,6 +164,7 @@ function LogoButton({ theme, showAllMarkers, onClick }: LogoButtonProps) {
             border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             animation: 'tooltipFadeIn 0.2s ease forwards',
+            WebkitBackdropFilter: 'blur(8px)',
             backdropFilter: 'blur(8px)',
           }}
         >
@@ -223,11 +224,11 @@ export default function Sidebar({
     // Call mode change with event for transition trigger position
     onModeChange(mode, event);
 
-    // Store timeout reference and clear toast after 1.5 seconds
+    // Store timeout reference and clear toast after animation completes (1.8s)
     toastTimerRef.current = setTimeout(() => {
       setModeToast(null);
       toastTimerRef.current = null;
-    }, 1500);
+    }, 1800);
   };
 
   return (
@@ -250,16 +251,37 @@ export default function Sidebar({
         }
         @keyframes allMarkersToast {
           0% { opacity: 0; transform: translateX(-14px); }
-          15% { opacity: 1; transform: translateX(0); }
-          80% { opacity: 1; transform: translateX(0); }
+          12% { opacity: 1; transform: translateX(0); }
+          75% { opacity: 1; transform: translateX(0); }
           100% { opacity: 0; transform: translateX(-14px); }
         }
         .animate-all-markers-toast {
           animation: allMarkersToast 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-all-markers-toast {
+            animation: none;
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
         @keyframes tooltipFadeIn {
           from { opacity: 0; transform: translateX(-4px); }
           to { opacity: 1; transform: translateX(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes logoRingSpin {
+            from, to { transform: rotate(0deg); }
+          }
+          @keyframes logoPulse {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 0.4;
+            }
+          }
+          @keyframes tooltipFadeIn {
+            from, to { opacity: 1; transform: translateX(0); }
+          }
         }
       `}</style>
 

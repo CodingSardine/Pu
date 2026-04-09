@@ -14,12 +14,28 @@ interface Props {
 export default function ModeTransitionOverlay({ isActive, toMode, onMidpoint, onComplete }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const reducedMotionRef = useRef<boolean>(false);
+
+  // Check for reduced motion preference on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      reducedMotionRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+  }, []);
 
   useEffect(() => {
+    // Always clear timers first to prevent race conditions on rapid mode switches
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
 
     if (!isActive || !overlayRef.current) return;
+
+    // If user prefers reduced motion, skip animation entirely
+    if (reducedMotionRef.current) {
+      onMidpoint();
+      onComplete();
+      return;
+    }
 
     const el = overlayRef.current;
 
@@ -28,6 +44,9 @@ export default function ModeTransitionOverlay({ isActive, toMode, onMidpoint, on
     el.style.opacity = '0';
 
     requestAnimationFrame(() => {
+      // Guard against component unmount during rAF
+      if (!overlayRef.current) return;
+
       // Fade IN over 220ms
       el.style.transition = 'opacity 220ms ease-out';
       el.style.opacity = '1';
@@ -35,6 +54,7 @@ export default function ModeTransitionOverlay({ isActive, toMode, onMidpoint, on
       // At 220ms: fully opaque - NOW change the mode (markers animate hidden)
       timersRef.current.push(
         setTimeout(() => {
+          if (!overlayRef.current) return;
           onMidpoint();
         }, 220),
       );
@@ -42,6 +62,7 @@ export default function ModeTransitionOverlay({ isActive, toMode, onMidpoint, on
       // At 320ms: start fade OUT (markers have had 100ms to begin their animation)
       timersRef.current.push(
         setTimeout(() => {
+          if (!overlayRef.current) return;
           el.style.transition = 'opacity 380ms ease-in';
           el.style.opacity = '0';
         }, 320),
@@ -67,6 +88,8 @@ export default function ModeTransitionOverlay({ isActive, toMode, onMidpoint, on
       style={{
         backgroundColor: MODE_COLORS[toMode],
         opacity: 0,
+        willChange: 'opacity',
+        transform: 'translateZ(0)', // Force GPU layer for smoother animation
       }}
     />
   );

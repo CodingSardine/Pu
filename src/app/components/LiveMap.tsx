@@ -47,6 +47,10 @@ L.Icon.Default.mergeOptions({
   shadowUrl: '',
 });
 
+// Detect touch device for larger hit targets
+const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+const MIN_TOUCH_TARGET = 44; // Apple HIG recommends 44pt minimum
+
 function buildIcon(
   modeColor: string,
   isSelected: boolean,
@@ -59,6 +63,9 @@ function buildIcon(
 ) {
   const size = isSelected ? 36 : 28;
   const pinHeight = isSelected ? 46 : 36;
+  // On touch devices, ensure hit target meets accessibility guidelines
+  const hitTargetSize = isTouchDevice ? Math.max(size, MIN_TOUCH_TARGET) : size;
+  const hitTargetHeight = isTouchDevice ? Math.max(pinHeight, MIN_TOUCH_TARGET) : pinHeight;
 
   const markerFill = modeColor;
   const centerDotFill = 'white';
@@ -84,9 +91,14 @@ function buildIcon(
   const html = `
     <div style="
       position: relative;
-      width: ${size}px;
-      height: ${pinHeight}px;
-      cursor: pointer;
+width: ${hitTargetSize}px;
+  height: ${hitTargetHeight}px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
       ${animate ? `animation: markerDrop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${enterDelay}ms both;` : ''}
     " title="${markerTitle || 'Location'}">
       ${isSelected ? `
@@ -123,8 +135,8 @@ function buildIcon(
   return L.divIcon({
     html,
     className: 'custom-marker',
-    iconSize: [size, pinHeight],
-    iconAnchor: [size / 2, pinHeight],
+    iconSize: [hitTargetSize, hitTargetHeight],
+    iconAnchor: [hitTargetSize / 2, hitTargetHeight],
   });
 }
 
@@ -195,8 +207,8 @@ function addMarkersToMap(
       })
       .on('mouseover', (e) => {
         const marker = e.target;
-        const el = marker.getElement();
-        if (el) {
+        const el = marker?.getElement?.();
+        if (el && el.isConnected) {
           // Create or show the hover pill
           let pill = el.querySelector('.marker-hover-pill');
           if (!pill) {
@@ -221,6 +233,7 @@ function addMarkersToMap(
               z-index: 1000;
               opacity: 0;
               transition: all 0.2s ease;
+              -webkit-backdrop-filter: blur(8px);
               backdrop-filter: blur(8px);
             `;
             el.appendChild(pill);
@@ -233,14 +246,18 @@ function addMarkersToMap(
         }
       })
       .on('mouseout', (e) => {
-        const el = e.target.getElement();
-        if (el) {
+        const el = e.target?.getElement?.();
+        if (el && el.isConnected) {
           const pill = el.querySelector('.marker-hover-pill') as HTMLElement;
-          if (pill) {
+          if (pill && pill.isConnected) {
             pill.style.opacity = '0';
             pill.style.transform = 'translateX(-50%) translateY(-8px)';
-            // Remove after transition
-            setTimeout(() => pill.remove(), 200);
+            // Remove after transition with defensive check
+            setTimeout(() => {
+              if (pill.isConnected) {
+                pill.remove();
+              }
+            }, 200);
           }
         }
       });
@@ -422,6 +439,32 @@ export default function LiveMap({
           background: transparent !important;
           border: none !important;
           overflow: visible !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes markerDrop {
+            0%, 100% {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          @keyframes markerPop {
+            0%, 100% {
+              opacity: 0;
+              transform: scale(1) translateY(0);
+            }
+          }
+          @keyframes ping {
+            75%, 100% {
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 0.4;
+            }
+          }
+          @keyframes allModeRingPulse {
+            0%, 100% {
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 0.5;
+            }
+          }
         }
       `}</style>
     </>
