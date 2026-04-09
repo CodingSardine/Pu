@@ -288,7 +288,7 @@ export default function Sidebar({
 
       {/* Sidebar - Fixed width icon toolbar (always visible on desktop) */}
       <div
-        className={`fixed left-0 top-0 z-[1001] flex h-full w-16 flex-col items-center pt-5 pb-5 ${bgColor} shadow-2xl`}
+        className={`fixed left-0 top-0 z-[1001] hidden md:flex h-full w-16 flex-col items-center pt-5 pb-5 ${bgColor} shadow-2xl`}
         style={{
           borderRight: showAllMarkers
             ? '1px solid rgba(99,102,241,0.25)'
@@ -415,6 +415,47 @@ export default function Sidebar({
           }`}
         >
           {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+        </button>
+      </div>
+
+      {/* Mobile bottom navigation */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-[1001] flex md:hidden h-16 items-center justify-around px-4 ${bgColor} shadow-[0_-4px_12px_rgba(0,0,0,0.1)]`}
+        style={{ borderTop: theme === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)' }}
+      >
+        {/* Mode buttons */}
+        {modes.map((mode) => {
+          const isActive = !showAllMarkers && selectedMode === mode.key;
+          const modeColorVal = getModeColor(mode.key, theme);
+          return (
+            <button
+              key={mode.key}
+              onClick={(e) => handleModeClick(mode.key, mode.label, e)}
+              className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all duration-300"
+              style={{ color: isActive ? modeColorVal : theme === 'dark' ? '#94a3b8' : '#475569' }}
+            >
+              {mode.icon}
+              <span className="text-[10px] font-semibold">{mode.label}</span>
+            </button>
+          );
+        })}
+        {/* Search */}
+        <button
+          onClick={onSearchToggle}
+          className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl"
+          style={{ color: theme === 'dark' ? '#94a3b8' : '#475569' }}
+        >
+          <Search size={20} />
+          <span className="text-[10px] font-semibold">SEARCH</span>
+        </button>
+        {/* Theme toggle */}
+        <button
+          onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')}
+          className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl"
+          style={{ color: theme === 'dark' ? '#94a3b8' : '#475569' }}
+        >
+          {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+          <span className="text-[10px] font-semibold">THEME</span>
         </button>
       </div>
     </>

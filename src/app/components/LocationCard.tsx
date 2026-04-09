@@ -154,7 +154,7 @@ function ImageCarousel({
 
   return (
     <div 
-      className="absolute h-[192px] left-0 overflow-clip top-0 w-[448px] group"
+      className="absolute h-[192px] left-0 overflow-clip top-0 w-full group"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -240,7 +240,7 @@ function GenericLocationCard({
 
       <div
         className="bg-white content-stretch flex flex-col items-start overflow-clip relative rounded-[10px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]"
-        style={{ width: 448 }}
+        style={{ width: '100%', maxWidth: 448 }}
       >
         {/* Image area with carousel - only show if we have Google Photos */}
         {images.length > 0 && (

@@ -162,7 +162,7 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
   return (
     <>
       <div className="fixed inset-0 z-[999] bg-black/20" onClick={onClose} />
-      <div className="fixed left-20 top-8 z-[1002] w-80 px-4">
+      <div className="fixed md:left-20 left-4 right-4 md:right-auto top-8 z-[1002] md:w-80 w-auto px-0 md:px-4">
         <div
           className={`rounded-2xl ${panelBg} p-6 shadow-2xl backdrop-blur-xl border`}
           style={{
@@ -394,7 +394,7 @@ export default function MapView({
   };
 
   return (
-    <div className={`absolute inset-0 left-16 transition-colors duration-300 ${bgColor}`}>
+    <div className={`absolute inset-0 md:left-16 left-0 md:bottom-0 bottom-16 transition-colors duration-300 ${bgColor}`}>
       {/* Legend keyframes */}
       <style>{`
         @keyframes legendFadeIn {
@@ -434,7 +434,7 @@ export default function MapView({
 
       {/* Location Card — only shown when selected location passes current filters */}
       {selectedLocation && isSelectedVisible && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-[1000]" style={{ maxWidth: 448 }}>
+        <div className="absolute md:left-4 md:top-1/2 md:-translate-y-1/2 md:bottom-auto left-0 bottom-0 right-0 md:right-auto z-[1000] md:max-w-[448px] w-full">
           <LocationCard
             locationId={selectedLocation}
             locationData={selectedLocationData}
