@@ -2,7 +2,6 @@ import { memo, useState, useRef, useEffect } from 'react';
 import { X, MapPin, Clock, UtensilsCrossed, DollarSign, Wind, Armchair, ExternalLink, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
-// Shared type exported for App.tsx and MapView.tsx
 export interface PlaceApiData {
   photoUrls?: string[];
   rating?: number;
@@ -57,7 +56,6 @@ function getModeColor(mode: 'eat' | 'focus' | 'chill', theme: 'dark' | 'light'):
   return theme === 'light' ? MODE_COLORS_LIGHT[mode] : MODE_COLORS[mode];
 }
 
-// SVG icon badges
 function EatIconBadge() {
   return (
     <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 110 110">
@@ -99,7 +97,6 @@ const MODE_ICON_BADGES = {
   chill: ChillIconBadge,
 } as const;
 
-// Image Carousel Component
 function ImageCarousel({
   images,
   locationName,
@@ -113,63 +110,37 @@ function ImageCarousel({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  
-  // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
 
-  const handlePrevious = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
+  const handlePrevious = () => setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const handleNext = () => setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
+  const onTouchStart = (e: React.TouchEvent) => { setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX); };
+  const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      handleNext();
-    } else if (isRightSwipe) {
-      handlePrevious();
-    }
+    if (distance > minSwipeDistance) handleNext();
+    else if (distance < -minSwipeDistance) handlePrevious();
   };
 
   if (images.length === 0) return null;
-
   const activeDotColor = getModeColor(mode, theme);
 
   return (
-    <div 
-      className="absolute h-[192px] left-0 overflow-clip top-0 w-[448px] group"
+    <div
+      className="absolute inset-0 overflow-clip group"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Current Image */}
       <img
         src={images[currentIndex]}
         alt={`${locationName} - Image ${currentIndex + 1}`}
         className="absolute inset-0 max-w-none object-cover pointer-events-none size-full transition-opacity duration-300"
       />
-
-      {/* Navigation Controls - Only show if more than 1 image */}
       {images.length > 1 && (
         <>
-          {/* Previous Button */}
           <button
             onClick={handlePrevious}
             className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/50"
@@ -177,8 +148,6 @@ function ImageCarousel({
           >
             <ChevronLeft size={16} className="text-white" />
           </button>
-
-          {/* Next Button */}
           <button
             onClick={handleNext}
             className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/50"
@@ -186,21 +155,13 @@ function ImageCarousel({
           >
             <ChevronRight size={16} className="text-white" />
           </button>
-
-          {/* Image Indicators (Dots) */}
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
             {images.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`h-2 rounded-full transition-all duration-200 ${
-                  index === currentIndex 
-                    ? 'w-6' 
-                    : 'w-2'
-                }`}
-                style={{
-                  backgroundColor: index === currentIndex ? activeDotColor : 'rgba(255, 255, 255, 0.5)',
-                }}
+                className={`h-2 rounded-full transition-all duration-200 ${index === currentIndex ? 'w-6' : 'w-2'}`}
+                style={{ backgroundColor: index === currentIndex ? activeDotColor : 'rgba(255, 255, 255, 0.5)' }}
                 aria-label={`Go to image ${index + 1}`}
               />
             ))}
@@ -226,54 +187,44 @@ function GenericLocationCard({
   const color = getModeColor(mode, theme);
   const IconBadge = MODE_ICON_BADGES[mode];
 
-  // Only use Google Places API photos - no fallback
-  const images = placeData?.photoUrls && placeData.photoUrls.length > 0 
-    ? placeData.photoUrls 
-    : [];
-
+  const images = placeData?.photoUrls && placeData.photoUrls.length > 0 ? placeData.photoUrls : [];
   const displayAddress = placeData?.address ?? location.address;
   const displayHours = placeData?.hours ?? location.hours;
 
   return (
-    <div className="relative" style={{ animation: 'fadeIn 0.2s ease-out' }}>
+    <div className="relative w-full" style={{ animation: 'fadeIn 0.2s ease-out' }}>
       <style>{CARD_STYLES}</style>
 
-      <div
-        className="bg-white content-stretch flex flex-col items-start overflow-clip relative rounded-[10px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]"
-        style={{ width: 448 }}
-      >
-        {/* Image area with carousel - only show if we have Google Photos */}
-        {images.length > 0 && (
-          <div className="h-[192px] relative shrink-0 w-full">
-            <ImageCarousel images={images} locationName={location.name} mode={mode} />
+      <div className="bg-white content-stretch flex flex-col items-start overflow-clip relative rounded-[10px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] w-full">
 
-            {/* Icon badge */}
-            <div className="absolute left-[306px] size-[110px] top-[137px] z-10">
+        {/* Image area — responsive height */}
+        {images.length > 0 && (
+          <div className="h-36 lg:h-44 xl:h-48 relative shrink-0 w-full">
+            <ImageCarousel images={images} locationName={location.name} mode={mode} />
+            {/* Badge pinned to bottom-right of image, not hardcoded pixel position */}
+            <div className="absolute right-3 bottom-0 translate-y-1/2 size-[90px] lg:size-[100px] xl:size-[110px] z-10">
               <IconBadge />
             </div>
           </div>
         )}
 
-        {/* Close button - positioned differently if no image */}
+        {/* Close button */}
         <button
-          className={`absolute bg-[rgba(255,255,255,0.9)] cursor-pointer flex items-center justify-center rounded-full shadow-[0px_4px_6px_0px_rgba(0,0,0,0.1),0px_2px_4px_0px_rgba(0,0,0,0.1)] size-[32px] z-20 ${
-            images.length > 0 ? 'right-[12px] top-[12px]' : 'right-[12px] top-[12px]'
-          }`}
+          className="absolute bg-[rgba(255,255,255,0.9)] cursor-pointer flex items-center justify-center rounded-full shadow-[0px_4px_6px_0px_rgba(0,0,0,0.1),0px_2px_4px_0px_rgba(0,0,0,0.1)] size-[32px] z-20 right-[12px] top-[12px]"
           onClick={onClose}
           aria-label="Close"
         >
           <X size={16} className="text-slate-700" />
         </button>
 
-        {/* Content */}
-        <div className="relative shrink-0 w-full">
+        {/* Scrollable content */}
+        <div className="relative shrink-0 w-full overflow-y-auto max-h-[calc(100vh-14rem)]">
           <div className="content-stretch flex flex-col gap-[8px] items-start pt-[20px] px-[20px] relative w-full">
-            {/* Name */}
+
             <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[28px] text-[#101828] text-[20px]">
               {location.name}
             </p>
 
-            {/* Rating (shown only when Places API data is available) */}
             {placeData?.rating != null && (
               <div className="flex items-center gap-[6px]">
                 <Star size={14} fill="#F59E0B" className="text-amber-400 shrink-0" />
@@ -288,27 +239,20 @@ function GenericLocationCard({
               </div>
             )}
 
-            {/* Address */}
             {displayAddress && (
               <div className="flex items-center gap-[8px] relative shrink-0 w-full">
                 <MapPin size={16} className="text-[#4A5565] shrink-0" strokeWidth={1.33} />
-                <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[20px] text-[#4a5565] text-[14px]">
-                  {displayAddress}
-                </p>
+                <p className="font-normal leading-[20px] text-[#4a5565] text-[14px]">{displayAddress}</p>
               </div>
             )}
 
-            {/* Hours — no "Open now" hardcoding, just the hours string in neutral colour */}
             {displayHours && (
               <div className="content-stretch flex gap-[8px] items-center relative shrink-0 w-full">
                 <Clock size={16} className="text-[#4A5565] shrink-0" strokeWidth={1.33} />
-                <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[20px] text-[#4a5565] text-[14px]">
-                  {displayHours}
-                </p>
+                <p className="font-normal leading-[20px] text-[#4a5565] text-[14px]">{displayHours}</p>
               </div>
             )}
 
-            {/* Divider + details grid */}
             <div className="content-stretch flex flex-col items-start pt-[16.8px] relative shrink-0 w-full">
               <div aria-hidden="true" className="absolute border-[rgba(0,0,0,0.1)] border-solid border-t-[0.8px] inset-x-0 top-0 pointer-events-none" />
               <div className="grid grid-cols-2 gap-y-[12px] w-full">
@@ -316,8 +260,8 @@ function GenericLocationCard({
                   <div className="flex gap-[8px] items-center">
                     <UtensilsCrossed size={20} className="text-[#6A7282] shrink-0" strokeWidth={1.67} />
                     <div>
-                      <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[16px] text-[#6a7282] text-[12px]">Cuisine</p>
-                      <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[20px] text-[#101828] text-[14px]">{location.cuisine}</p>
+                      <p className="font-normal leading-[16px] text-[#6a7282] text-[12px]">Cuisine</p>
+                      <p className="font-normal leading-[20px] text-[#101828] text-[14px]">{location.cuisine}</p>
                     </div>
                   </div>
                 )}
@@ -325,8 +269,8 @@ function GenericLocationCard({
                   <div className="flex gap-[8px] items-center">
                     <DollarSign size={20} className="text-[#6A7282] shrink-0" strokeWidth={1.67} />
                     <div>
-                      <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[16px] text-[#6a7282] text-[12px]">Price</p>
-                      <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[20px] text-[#101828] text-[14px]">{location.price}</p>
+                      <p className="font-normal leading-[16px] text-[#6a7282] text-[12px]">Price</p>
+                      <p className="font-normal leading-[20px] text-[#101828] text-[14px]">{location.price}</p>
                     </div>
                   </div>
                 )}
@@ -334,8 +278,8 @@ function GenericLocationCard({
                   <div className="flex gap-[8px] items-center">
                     <Wind size={20} className="text-[#6A7282] shrink-0" strokeWidth={1.67} />
                     <div>
-                      <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[16px] text-[#6a7282] text-[12px]">Atmosphere</p>
-                      <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[20px] text-[#101828] text-[14px]">{location.atmosphere}</p>
+                      <p className="font-normal leading-[16px] text-[#6a7282] text-[12px]">Atmosphere</p>
+                      <p className="font-normal leading-[20px] text-[#101828] text-[14px]">{location.atmosphere}</p>
                     </div>
                   </div>
                 )}
@@ -343,15 +287,14 @@ function GenericLocationCard({
                   <div className="flex gap-[8px] items-center">
                     <Armchair size={20} className="text-[#6A7282] shrink-0" strokeWidth={1.67} />
                     <div>
-                      <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[16px] text-[#6a7282] text-[12px]">Seating</p>
-                      <p className="font-['Arimo:Regular',sans-serif] font-normal leading-[20px] text-[#101828] text-[14px]">{location.seating}</p>
+                      <p className="font-normal leading-[16px] text-[#6a7282] text-[12px]">Seating</p>
+                      <p className="font-normal leading-[20px] text-[#101828] text-[14px]">{location.seating}</p>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Google Maps link */}
             {location.gmaps && (
               <div className="pb-[20px] w-full">
                 <a
@@ -366,6 +309,7 @@ function GenericLocationCard({
                 </a>
               </div>
             )}
+
           </div>
         </div>
       </div>
@@ -383,7 +327,6 @@ const LocationCard = memo(function LocationCard({
   if (locationData) {
     return <GenericLocationCard location={locationData} onClose={onClose} mode={mode} placeData={placeData} />;
   }
-
   return null;
 });
 

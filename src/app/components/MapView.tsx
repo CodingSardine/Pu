@@ -434,7 +434,7 @@ export default function MapView({
 
       {/* Location Card — only shown when selected location passes current filters */}
       {selectedLocation && isSelectedVisible && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-[1000]" style={{ maxWidth: 448 }}>
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-[1000] w-[360px] lg:w-[400px] xl:w-[448px] max-h-[calc(100vh-2rem)] overflow-y-auto">
           <LocationCard
             locationId={selectedLocation}
             locationData={selectedLocationData}

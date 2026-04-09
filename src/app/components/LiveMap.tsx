@@ -181,7 +181,8 @@ function addMarkersToMap(
         // Pan map so marker is in the right portion of viewport,
         // leaving room for the card on the left
         const mapSize = map.getSize();
-        const cardWidth = 480; // card is 448px + some margin
+        // Match responsive card widths: 360px@1024, 400px@1280, 448px@1440+
+        const cardWidth = window.innerWidth >= 1280 ? 480 : window.innerWidth >= 1024 ? 420 : 400;
         const markerPoint = map.latLngToContainerPoint([location.lat, location.lng]);
         // Target: marker should be at x = cardWidth + (remaining width) / 2
         const targetX = cardWidth + (mapSize.x - cardWidth) / 2;
