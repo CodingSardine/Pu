@@ -434,7 +434,7 @@ export default function MapView({
 
       {/* Location Card — only shown when selected location passes current filters */}
       {selectedLocation && isSelectedVisible && (
-        <div className="fixed bottom-0 left-0 right-0 z-[1002] md:absolute md:left-4 md:top-1/2 md:right-auto md:bottom-auto md:-translate-y-1/2">
+        <div className="fixed bottom-16 left-0 right-0 z-[1002] md:absolute md:left-4 md:top-1/2 md:right-auto md:bottom-auto md:-translate-y-1/2">
           <div className="mx-auto mb-2 mt-2 h-1.5 w-12 rounded-full bg-white/30 md:hidden" />
           <LocationCard
             locationId={selectedLocation}

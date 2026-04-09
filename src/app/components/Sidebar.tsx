@@ -263,29 +263,6 @@ export default function Sidebar({
         }
       `}</style>
 
-      {/* Mode Toast */}
-      {modeToast && (
-        <div
-          key={modeToast.key}
-          className="fixed z-[1003] pointer-events-none flex items-center"
-          style={{
-            left: '4.5rem',
-            top: `${modeToast.y}px`,
-            transform: 'translateY(-50%)',
-          }}
-        >
-          <div
-            className="rounded-full px-3 py-1.5 text-sm font-bold text-white whitespace-nowrap flex items-center animate-mode-toast"
-            style={{
-              backgroundColor: getModeColor(modeToast.mode, theme),
-              boxShadow: `0 0 20px ${getModeColor(modeToast.mode, theme)}60, 0 4px 12px ${getModeColor(modeToast.mode, theme)}40`,
-            }}
-          >
-            {modeToast.label}
-          </div>
-        </div>
-      )}
-
       {/* Sidebar - Fixed width icon toolbar (always visible on desktop) */}
       <div
         className={`fixed left-0 top-0 z-[1001] hidden md:flex h-full w-16 flex-col items-center pt-5 pb-5 ${bgColor} shadow-2xl`}
@@ -419,16 +396,12 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Mode toast - fixed position, centered */}
-      <div
-        className="fixed z-[1200] top-4 left-1/2 -translate-x-1/2 md:left-[4.5rem] md:translate-x-0"
-        style={{
-          transition: 'transform 0.6s ease',
-        }}
-      >
+      {/* Mode toast - fixed position, centered on mobile / beside sidebar on desktop */}
+      <div className="fixed z-[1200] top-4 left-1/2 -translate-x-1/2 md:left-[4.5rem] md:translate-x-0 pointer-events-none">
         {modeToast && (
           <div
-            className="rounded-full px-4 py-2 text-sm font-bold text-white whitespace-nowrap shadow-lg"
+            key={modeToast.key}
+            className="animate-all-markers-toast rounded-full px-4 py-2 text-sm font-bold text-white whitespace-nowrap shadow-lg"
             style={{
               backgroundColor: getModeColor(modeToast.mode, theme),
               boxShadow: `0 0 20px ${getModeColor(modeToast.mode, theme)}60`,
