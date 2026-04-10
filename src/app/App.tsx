@@ -118,6 +118,27 @@ const LOCATION_NAMES: Record<string, string> = {
   tulum: 'Tulum Bar Nicosia',
 };
 
+// Module-level cache for place data to avoid re-fetching on mode switches
+const placeDataCache = new Map<string, PlaceApiData>();
+
+async function fetchInBatches<T>(
+  items: T[],
+  batchSize: number,
+  delayMs: number,
+  fn: (item: T) => Promise<any>
+) {
+  const results = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.allSettled(batch.map(fn));
+    results.push(...batchResults);
+    if (i + batchSize < items.length) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+  return results;
+}
+
 async function fetchPlaceByName(locationName: string): Promise<PlaceApiData> {
   const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
     method: 'POST',
@@ -191,53 +212,81 @@ export default function App() {
   const photoBlobUrlsRef = useRef<string[]>([]);
 
   // Fetch Google Places data for all 81 locations on mount.
-  // Uses Promise.allSettled so a single failure never blocks the others.
-  // All errors are silently swallowed — the UI falls back to hardcoded values.
+  // Uses batched requests (5 per batch, 300ms delay) to avoid rate limiting.
+  // Caches results so switching modes doesn't re-fetch.
+  // Updates state incrementally as each batch completes.
   useEffect(() => {
     let isMounted = true;
     const fetchAll = async () => {
-      const results = await Promise.allSettled(
-        Object.entries(LOCATION_NAMES).map(async ([id, locationName]) => {
+      const locationEntries = Object.entries(LOCATION_NAMES);
+      const createdBlobUrls: string[] = [];
+
+      // Fetch all locations in batches of 5 with 300ms delays
+      const results = await fetchInBatches(
+        locationEntries,
+        5,
+        300,
+        async ([id, locationName]) => {
+          // Check cache first
+          if (placeDataCache.has(id)) {
+            return { id, data: placeDataCache.get(id)! };
+          }
           const data = await fetchPlaceByName(locationName);
           return { id, data };
-        })
+        }
       );
 
-      const merged: Record<string, PlaceApiData> = {};
-      const createdBlobUrls: string[] = [];
-      await Promise.all(results.map(async (result) => {
-        if (result.status === 'fulfilled') {
-          const sourcePhotoUrls = result.value.data.photoUrls ?? [];
-          let blobUrls: string[] | undefined;
+      // Process results in batches and update state incrementally
+      for (let i = 0; i < results.length; i += 5) {
+        if (!isMounted) break;
 
-          if (sourcePhotoUrls.length > 0) {
-            try {
-              blobUrls = await Promise.all(
-              sourcePhotoUrls.map(async (url) => {
-                const res = await fetch(url);
-                const blob = await res.blob();
-                return URL.createObjectURL(blob);
-              })
-              );
-              createdBlobUrls.push(...blobUrls);
-            } catch {
-              // Ignore photo failures; card will render without images.
+        const batchResults = results.slice(i, i + 5);
+        const batchMerged: Record<string, PlaceApiData> = {};
+
+        await Promise.all(
+          batchResults.map(async (result) => {
+            if (result.status === 'fulfilled') {
+              const { id, data } = result.value;
+              const sourcePhotoUrls = data.photoUrls ?? [];
+              let blobUrls: string[] | undefined;
+
+              if (sourcePhotoUrls.length > 0) {
+                try {
+                  blobUrls = await Promise.all(
+                    sourcePhotoUrls.map(async (url) => {
+                      const res = await fetch(url);
+                      const blob = await res.blob();
+                      return URL.createObjectURL(blob);
+                    })
+                  );
+                  createdBlobUrls.push(...blobUrls);
+                } catch {
+                  // Ignore photo failures; card will render without images.
+                }
+              }
+
+              const finalPlaceData: PlaceApiData = {
+                ...data,
+                photoUrls: blobUrls,
+              };
+
+              batchMerged[id] = finalPlaceData;
+              placeDataCache.set(id, finalPlaceData);
             }
-          }
+          })
+        );
 
-          merged[result.value.id] = {
-            ...result.value.data,
-            photoUrls: blobUrls,
-          };
+        // Update state after this batch completes
+        if (isMounted && Object.keys(batchMerged).length > 0) {
+          setPlaceData((prev) => ({ ...prev, ...batchMerged }));
         }
-      }));
+      }
 
       if (!isMounted) {
         createdBlobUrls.forEach((url) => URL.revokeObjectURL(url));
         return;
       }
 
-      setPlaceData(merged);
       photoBlobUrlsRef.current = createdBlobUrls;
     };
 

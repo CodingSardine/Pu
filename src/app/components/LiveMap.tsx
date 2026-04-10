@@ -268,6 +268,8 @@ export default function LiveMap({
   const prevModeRef = useRef<Mode>(selectedMode);
   const prevShowAllRef = useRef<boolean>(showAllMarkers);
   const transitionLockRef = useRef(false);
+  const isAnimatingRef = useRef(false);
+  const onLocationSelectRef = useRef(onLocationSelect);
 
   // Initialize map
   useEffect(() => {
@@ -316,6 +318,11 @@ export default function LiveMap({
     }).addTo(mapRef.current);
   }, [theme]);
 
+  // Sync onLocationSelect ref to avoid dependency array churn
+  useEffect(() => {
+    onLocationSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
+
   // Update markers — with transition when mode or all-markers state changes, instant otherwise
   useEffect(() => {
     if (!mapRef.current) return;
@@ -334,6 +341,7 @@ export default function LiveMap({
     if (needsTransition) {
       // Lock to prevent re-entry during async transition
       transitionLockRef.current = true;
+      isAnimatingRef.current = true;
 
       // 1. Capture DOM elements before removing from map
       const markerElements: HTMLElement[] = [];
@@ -354,19 +362,23 @@ export default function LiveMap({
       // 4. After exit animation, add new markers with staggered drop
       const exitDuration = 220;
       const timer = setTimeout(() => {
-        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, true, theme, showAllMarkers);
+        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, (...args: [string]) => onLocationSelectRef.current(...args), true, theme, showAllMarkers);
         transitionLockRef.current = false;
+        isAnimatingRef.current = false;
       }, exitDuration);
 
       return () => clearTimeout(timer);
     } else {
       // Selection change, initial load, filter updates, or non-transition mode/all-state changes.
+      // Guard against this branch firing while a transition is in flight.
+      if (isAnimatingRef.current) return;
+
       // Always use a snappy stagger so markers never pop in.
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
-      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, true, theme, showAllMarkers, 30);
+      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, (...args: [string]) => onLocationSelectRef.current(...args), true, theme, showAllMarkers, 30);
     }
-  }, [locations, selectedLocation, selectedMode, showAllMarkers, onLocationSelect, theme]);
+  }, [locations, selectedLocation, selectedMode, showAllMarkers, theme]);
 
   return (
     <>
