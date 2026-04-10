@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useTheme } from '../context/ThemeContext';
@@ -81,8 +81,7 @@ function buildIcon(
         border-radius: 50%;
         border: 1.5px solid ${modeColor}80;
         pointer-events: none;
-        animation: allModeRingPulse 2.5s ease-in-out infinite;
-        animation-delay: ${enterDelay % 600}ms;
+        /* Avoid infinite per-marker animations (keeps FPS smooth). */
       "></div>`
     : '';
 
@@ -92,7 +91,7 @@ function buildIcon(
       width: ${size}px;
       height: ${pinHeight}px;
       cursor: pointer;
-      ${animate ? `animation: markerDrop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${enterDelay}ms both;` : ''}
+      ${animate ? `animation: markerDrop 0.38s cubic-bezier(0.2, 0.9, 0.2, 1) ${enterDelay}ms both;` : ''}
     " title="${markerTitle || 'Location'}">
       ${isSelected ? `
         <div style="
@@ -290,14 +289,13 @@ export default function LiveMap({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<{ [key: string]: L.Marker }>({});
   const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const [tilesReady, setTilesReady] = useState(false);
   const prevModeRef = useRef<Mode>(selectedMode);
   const prevShowAllRef = useRef<boolean>(showAllMarkers);
   const prevThemeRef = useRef<'dark' | 'light'>(theme);
   const prevLocationsRef = useRef<Location[]>(locations);
   const prevLocationIdsRef = useRef<string>('');
   const hasEverRenderedMarkersRef = useRef(false);
-  const transitionLockRef = useRef(false);
-  const isAnimatingRef = useRef(false);
   const tileLayerMountedRef = useRef(false);
   const onLocationSelectRef = useRef(onLocationSelect);
   const staggerTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -330,6 +328,8 @@ export default function LiveMap({
 
     tileLayerRef.current = tileLayer;
     mapRef.current = map;
+    setTilesReady(false);
+    tileLayer.once('load', () => setTilesReady(true));
 
     // Make dark tiles slightly greyer for UI contrast.
     const tileEl = tileLayer.getContainer();
@@ -371,6 +371,7 @@ export default function LiveMap({
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
         : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
+    setTilesReady(false);
     tileLayerRef.current = L.tileLayer(tileUrl, {
       attribution: '© OpenStreetMap contributors © CARTO',
       maxZoom: 20,
@@ -378,6 +379,7 @@ export default function LiveMap({
       updateWhenZooming: false,
       keepBuffer: 2,
     }).addTo(mapRef.current);
+    tileLayerRef.current.once('load', () => setTilesReady(true));
 
     const tileEl = tileLayerRef.current.getContainer();
     if (tileEl) {
@@ -390,7 +392,7 @@ export default function LiveMap({
     onLocationSelectRef.current = onLocationSelect;
   }, [onLocationSelect]);
 
-  // Update markers — with transition when mode or all-markers state changes, instant otherwise
+  // Update markers — reconciled by id (no global remove/re-add)
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -409,116 +411,62 @@ export default function LiveMap({
     prevLocationsRef.current = locations;
     prevLocationIdsRef.current = currentIds;
 
-    const needsTransition = (isModeChange || isAllMarkersChange) &&
-      !transitionLockRef.current &&
-      Object.keys(markersRef.current).length > 0;
+    // Initial load smoothing: wait until first tiles are ready before first marker drop.
+    if (!tilesReady && !hasEverRenderedMarkersRef.current) return;
 
-    if (needsTransition) {
-      // Lock to prevent re-entry during async transition
-      transitionLockRef.current = true;
-      isAnimatingRef.current = true;
+    // Bullet-proof marker reconciliation:
+    // - never wipe/re-add on normal updates (avoids jank/freezing)
+    // - add markers when coords become available (no enter animation)
+    // - remove markers when filtered out
+    const desired = locations.filter(hasValidLatLng);
+    const desiredIdSet = new Set(desired.map((l) => l.id));
+    const existingIds = Object.keys(markersRef.current);
 
-      // 1. Capture DOM elements before removing from map
-      const markerElements: HTMLElement[] = [];
-      Object.values(markersRef.current).forEach((marker) => {
-        const el = marker.getElement();
-        if (el) markerElements.push(el);
-      });
+    existingIds.forEach((id) => {
+      if (!desiredIdSet.has(id)) {
+        const m = markersRef.current[id];
+        if (m) m.remove();
+        delete markersRef.current[id];
+      }
+    });
 
-      // 2. Remove all markers from map synchronously (no overlap!)
-      Object.values(markersRef.current).forEach((m) => map.removeLayer(m));
-      markersRef.current = {};
+    const shouldAnimateFirstEver = !hasEverRenderedMarkersRef.current && tilesReady && desired.length > 0;
+    desired.forEach((location) => {
+      const existing = markersRef.current[location.id];
+      const isSelected = selectedLocation === location.id;
+      const markerColor = showAllMarkers && location.mode
+        ? getModeColor(location.mode, theme)
+        : modeColor;
 
-      // 3. Now animate the detached DOM elements
-      markerElements.forEach((el) => {
-        el.style.animation = 'markerPop 0.2s cubic-bezier(0.55, 0, 1, 0.45) forwards';
-      });
-
-      // 4. After exit animation, add new markers with staggered drop
-      const exitDuration = 220;
-      const timer = setTimeout(() => {
+      if (existing) {
+        existing.setLatLng([location.lat, location.lng]);
+        existing.setIcon(
+          buildIcon(markerColor, isSelected, 0, false, theme, showAllMarkers, location.mode, location.name)
+        );
+      } else {
         addMarkersToMap(
           map,
-          locations,
+          [location],
           selectedLocation,
           modeColor,
           markersRef,
           staggerTimersRef,
           hoverTimersRef,
           (...args: [string]) => onLocationSelectRef.current(...args),
-          true,
+          shouldAnimateFirstEver,
           theme,
-          showAllMarkers
+          showAllMarkers,
+          shouldAnimateFirstEver ? 24 : 0
         );
-        transitionLockRef.current = false;
-        isAnimatingRef.current = false;
-      }, exitDuration);
+      }
+    });
 
-      return () => {
-        clearTimeout(timer);
-        clearTimeoutList(staggerTimersRef.current);
-        clearTimeoutList(hoverTimersRef.current);
-        transitionLockRef.current = false;
-        isAnimatingRef.current = false;
-      };
-    } else {
-      // Selection change, initial load, filter updates, or non-transition mode/all-state changes.
-      // Guard against this branch firing while a transition is in flight.
-      if (isAnimatingRef.current) return;
-
-      // Bullet-proof marker reconciliation:
-      // - never wipe/re-add on normal updates
-      // - add markers when coords become available (no enter animation)
-      // - remove markers when filtered out
-      const desired = locations.filter(hasValidLatLng);
-      const desiredIdSet = new Set(desired.map((l) => l.id));
-      const existingIds = Object.keys(markersRef.current);
-
-      // remove markers no longer desired
-      existingIds.forEach((id) => {
-        if (!desiredIdSet.has(id)) {
-          const m = markersRef.current[id];
-          if (m) m.remove();
-          delete markersRef.current[id];
-        }
-      });
-
-      // update existing + add missing
-      const shouldAnimateFirstEver = !hasEverRenderedMarkersRef.current && desired.length > 0;
-      desired.forEach((location) => {
-        const existing = markersRef.current[location.id];
-        const isSelected = selectedLocation === location.id;
-        const markerColor = showAllMarkers && location.mode
-          ? getModeColor(location.mode, theme)
-          : modeColor;
-
-        if (existing) {
-          existing.setLatLng([location.lat, location.lng]);
-          existing.setIcon(
-            buildIcon(markerColor, isSelected, 0, false, theme, showAllMarkers, location.mode, location.name)
-          );
-        } else {
-          // add new marker
-          addMarkersToMap(
-            map,
-            [location],
-            selectedLocation,
-            modeColor,
-            markersRef,
-            staggerTimersRef,
-            hoverTimersRef,
-            (...args: [string]) => onLocationSelectRef.current(...args),
-            shouldAnimateFirstEver,
-            theme,
-            showAllMarkers,
-            shouldAnimateFirstEver ? 30 : 0
-          );
-        }
-      });
-
-      if (desired.length > 0) hasEverRenderedMarkersRef.current = true;
-    }
-  }, [locations, selectedLocation, selectedMode, showAllMarkers, theme]);
+    if (desired.length > 0) hasEverRenderedMarkersRef.current = true;
+    void isModeChange;
+    void isAllMarkersChange;
+    void isThemeChange;
+    void sameIds;
+  }, [locations, selectedLocation, selectedMode, showAllMarkers, theme, tilesReady]);
 
   return (
     <>
@@ -545,29 +493,6 @@ export default function LiveMap({
           100% {
             opacity: 1;
             transform: translateY(0) scale(1);
-          }
-        }
-        @keyframes markerPop {
-          0% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-          40% {
-            transform: scale(1.15) translateY(-4px);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(0.3) translateY(10px);
-          }
-        }
-        @keyframes allModeRingPulse {
-          0%, 100% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0.5;
-          }
-          50% {
-            transform: translate(-50%, -50%) scale(1.4);
-            opacity: 0;
           }
         }
         .custom-marker {
