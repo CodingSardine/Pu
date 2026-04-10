@@ -461,6 +461,20 @@ export default function LiveMap({
       }
     });
 
+    // Bring back the "transition bounce" feel safely (no remove/re-add, no coord swapping).
+    // Only run after initial marker render, and only for mode/all-markers switches.
+    if (hasEverRenderedMarkersRef.current && (isModeChange || isAllMarkersChange)) {
+      Object.values(markersRef.current).forEach((marker) => {
+        const el = marker.getElement() as HTMLElement | null;
+        if (!el) return;
+        // Restart animation reliably.
+        el.style.animation = 'none';
+        // Force reflow.
+        void el.offsetHeight;
+        el.style.animation = 'markerModeBounce 420ms cubic-bezier(0.2, 0.9, 0.2, 1) both';
+      });
+    }
+
     if (desired.length > 0) hasEverRenderedMarkersRef.current = true;
     void isModeChange;
     void isAllMarkersChange;
@@ -494,6 +508,12 @@ export default function LiveMap({
             opacity: 1;
             transform: translateY(0) scale(1);
           }
+        }
+        @keyframes markerModeBounce {
+          0% { transform: translateY(0) scale(1); }
+          30% { transform: translateY(-10px) scale(1.06); }
+          60% { transform: translateY(2px) scale(0.99); }
+          100% { transform: translateY(0) scale(1); }
         }
         .custom-marker {
           background: transparent !important;

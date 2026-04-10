@@ -538,9 +538,8 @@ export default function MapView({
     const prevId = prevSelectedLocationRef.current;
     if (prevId && !selectedLocation && mapInstanceRef.current) {
       const loc = allLocationsFlat.find((l) => l.id === prevId);
-      const pd = placeData[prevId] ?? null;
-      const lat = pd?.lat ?? loc?.lat;
-      const lng = pd?.lng ?? loc?.lng;
+      const lat = loc?.lat;
+      const lng = loc?.lng;
       if (typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng)) {
         mapInstanceRef.current.panTo([lat, lng], { animate: true, duration: 0.4 });
       }
@@ -576,12 +575,7 @@ export default function MapView({
         <LiveMap
           selectedMode={selectedMode}
           showAllMarkers={showAllMarkers}
-          locations={filteredLocations.map((l) => {
-            const pd = placeData[l.id] ?? null;
-            const lat = pd?.lat ?? l.lat;
-            const lng = pd?.lng ?? l.lng;
-            return { ...l, lat, lng };
-          })}
+          locations={filteredLocations}
           selectedLocation={selectedLocation}
           onLocationSelect={handleLocationSelect}
           onMapReady={(map) => { mapInstanceRef.current = map; }}
