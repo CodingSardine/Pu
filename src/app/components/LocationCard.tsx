@@ -142,12 +142,14 @@ function ImageCarousel({
       <img
         src={images[currentIndex]}
         alt={`${locationName} - Image ${currentIndex + 1}`}
+        loading="lazy"
+        decoding="async"
         onError={() => {
           // If an image fails (expired media URL / blocked fetch), skip it.
           if (images.length <= 1) return;
           setCurrentIndex((prev) => (prev + 1) % images.length);
         }}
-        className="absolute inset-0 max-w-none object-cover pointer-events-none size-full transition-opacity duration-300"
+        className="absolute inset-0 max-w-none object-cover object-center pointer-events-none size-full transition-opacity duration-300"
       />
       {images.length > 1 && (
         <>
@@ -206,14 +208,18 @@ function GenericLocationCard({
     <div className="relative w-full" style={{ animation: 'fadeIn 0.2s ease-out' }}>
       <style>{CARD_STYLES}</style>
 
-      <div className="bg-white content-stretch flex flex-col items-start overflow-clip relative rounded-[10px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] w-full">
+      <div className="bg-white content-stretch flex flex-col items-start overflow-clip relative rounded-2xl sm:rounded-[10px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] w-full">
+        {/* Mobile bottom-sheet handle */}
+        <div className="sm:hidden w-full flex justify-center pt-2">
+          <div className="h-1 w-10 rounded-full bg-black/10" />
+        </div>
 
         {/* Image area — responsive height */}
         {images.length > 0 && (
-          <div className="h-36 lg:h-44 xl:h-48 relative shrink-0 w-full">
+          <div className="relative shrink-0 w-full aspect-[16/9] sm:aspect-auto sm:h-36 lg:h-44 xl:h-48 bg-slate-100">
             <ImageCarousel images={images} locationName={location.name} mode={mode} />
             {/* Badge pinned to bottom-right of image, not hardcoded pixel position */}
-            <div className="absolute right-3 bottom-0 translate-y-1/2 size-[90px] lg:size-[100px] xl:size-[110px] z-10">
+            <div className="absolute right-3 bottom-0 translate-y-1/2 size-[68px] sm:size-[90px] lg:size-[100px] xl:size-[110px] z-10">
               <IconBadge />
             </div>
           </div>
@@ -221,7 +227,7 @@ function GenericLocationCard({
 
         {/* Close button */}
         <button
-          className="absolute bg-[rgba(255,255,255,0.9)] cursor-pointer flex items-center justify-center rounded-full shadow-[0px_4px_6px_0px_rgba(0,0,0,0.1),0px_2px_4px_0px_rgba(0,0,0,0.1)] size-[32px] z-20 right-[12px] top-[12px]"
+          className="absolute bg-[rgba(255,255,255,0.92)] cursor-pointer flex items-center justify-center rounded-full shadow-[0px_4px_6px_0px_rgba(0,0,0,0.1),0px_2px_4px_0px_rgba(0,0,0,0.1)] size-[34px] sm:size-[32px] z-20 right-[12px] top-[10px] sm:top-[12px]"
           onClick={onClose}
           aria-label="Close"
         >
@@ -229,10 +235,10 @@ function GenericLocationCard({
         </button>
 
         {/* Scrollable content */}
-        <div className="relative shrink-0 w-full overflow-y-auto max-h-[calc(100vh-14rem)]">
-          <div className="content-stretch flex flex-col gap-[8px] items-start pt-[20px] px-[20px] relative w-full">
+        <div className="relative shrink-0 w-full overflow-y-visible sm:overflow-y-auto max-h-none sm:max-h-[calc(100vh-14rem)]">
+          <div className="content-stretch flex flex-col gap-[8px] items-start pt-[16px] sm:pt-[20px] px-[16px] sm:px-[20px] relative w-full">
 
-            <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[28px] text-[#101828] text-[20px]">
+            <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[26px] sm:leading-[28px] text-[#101828] text-[18px] sm:text-[20px]">
               {location.name}
             </p>
 

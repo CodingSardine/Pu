@@ -302,6 +302,7 @@ export default function MapView({
   onModeChange,
 }: MapViewProps) {
   const theme = useTheme();
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
   // All 81 locations — 27 per mode — with full metadata and feature tags
   const locations = useMemo<Record<Mode, LocationEntry[]>>(
@@ -502,7 +503,7 @@ export default function MapView({
   }, [onFiltersExpandedChange]);
 
   return (
-    <div className={`absolute inset-0 left-16 transition-colors duration-300 ${bgColor}`}>
+    <div className={`absolute inset-0 left-0 sm:left-16 transition-colors duration-300 ${bgColor}`}>
       {/* Legend keyframes */}
       <style>{`
         @keyframes legendFadeIn {
@@ -528,7 +529,15 @@ export default function MapView({
       {showAllMarkers && <AllMarkersLegend theme={theme} />}
 
       {/* Custom Zoom Controls */}
-      <div className="absolute bottom-4 right-4 z-[500] flex flex-col gap-2">
+      <div
+        className="absolute right-4 z-[500] flex flex-col gap-2"
+        style={{
+          // On mobile, lift controls above the bottom control bar + safe area.
+          bottom: isMobile
+            ? 'calc(max(env(safe-area-inset-bottom), 0px) + 104px)'
+            : 'max(env(safe-area-inset-bottom), 16px)',
+        }}
+      >
         <button onClick={handleZoomIn} className={`flex h-10 w-10 items-center justify-center rounded-lg ${controlBg} shadow-lg transition-all duration-200 ${controlHover}`} aria-label="Zoom in">
           <Plus size={20} className={controlText} />
         </button>
@@ -542,7 +551,16 @@ export default function MapView({
 
       {/* Location Card — only shown when selected location passes current filters */}
       {selectedLocation && isSelectedVisible && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-[1000] w-[360px] lg:w-[400px] xl:w-[448px] max-h-[calc(100vh-2rem)] overflow-y-auto">
+        <div
+          className="
+            absolute z-[1300] overflow-y-auto
+            left-0 right-0 bottom-0 top-auto translate-y-0
+            w-full max-h-[70vh] px-3 pb-3
+            sm:left-4 sm:right-auto sm:top-1/2 sm:-translate-y-1/2 sm:bottom-auto sm:px-0 sm:pb-0
+            sm:w-[360px] lg:w-[400px] xl:w-[448px] sm:max-h-[calc(100vh-2rem)]
+          "
+          style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}
+        >
           <LocationCard
             locationId={selectedLocation}
             locationData={selectedLocationData}

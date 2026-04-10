@@ -290,7 +290,7 @@ export default function Sidebar({
 
       {/* Sidebar - Fixed width icon toolbar (always visible on desktop) */}
       <div
-        className={`fixed left-0 top-0 z-[1001] flex h-full w-16 flex-col items-center pt-5 pb-5 ${bgColor} shadow-2xl`}
+        className={`fixed left-0 top-0 z-[1001] hidden sm:flex h-full w-16 flex-col items-center pt-5 pb-5 ${bgColor} shadow-2xl`}
         style={{
           borderRight: showAllMarkers
             ? '1px solid rgba(99,102,241,0.25)'

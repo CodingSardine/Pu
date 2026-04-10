@@ -4,6 +4,7 @@ import MapView from './components/MapView';
 import ModeTransitionOverlay from './components/ModeTransitionOverlay';
 import type { PlaceApiData } from './components/LocationCard';
 import ThemeContext from './context/ThemeContext';
+import { Search, SlidersHorizontal, UtensilsCrossed, Focus, Coffee } from 'lucide-react';
 
 /**
  * Pu - Location Finder App for Nicosia, Cyprus
@@ -367,6 +368,13 @@ export default function App() {
     setTransitionActive(false);
   }, []);
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const mobileModes = [
+    { key: 'eat' as Mode, icon: <UtensilsCrossed size={18} />, label: 'Eat' },
+    { key: 'focus' as Mode, icon: <Focus size={18} />, label: 'Focus' },
+    { key: 'chill' as Mode, icon: <Coffee size={18} />, label: 'Chill' },
+  ];
+
   return (
     <ThemeContext.Provider value={theme}>
       <div
@@ -395,7 +403,7 @@ export default function App() {
         />
         {/* Map scrim: improves sidebar/status contrast vs tiles */}
         <div
-          className="fixed top-0 h-screen pointer-events-none"
+          className="fixed top-0 h-screen pointer-events-none hidden sm:block"
           style={{
             left: '4rem', // aligns with sidebar width (w-16)
             // Keep this narrow so it doesn't wash out map markers near the edge.
@@ -407,6 +415,79 @@ export default function App() {
                 : 'linear-gradient(to right, rgba(255,255,255,0.78), rgba(255,255,255,0.28), rgba(255,255,255,0))',
           }}
         />
+        {/* Mobile controls (shown on phones) */}
+        {isMobile && !selectedLocation && (
+          <div
+            className="fixed left-0 right-0 bottom-0 z-[1200] px-3 pb-3 pt-2"
+            style={{
+              paddingBottom: 'max(env(safe-area-inset-bottom), 12px)',
+              background:
+                theme === 'dark'
+                  ? 'linear-gradient(to top, rgba(15,23,42,0.92), rgba(15,23,42,0.6), rgba(15,23,42,0))'
+                  : 'linear-gradient(to top, rgba(248,250,252,0.96), rgba(248,250,252,0.7), rgba(248,250,252,0))',
+            }}
+          >
+            <div
+              className={`mx-auto flex max-w-md items-center justify-between gap-2 rounded-2xl px-3 py-2 shadow-xl backdrop-blur-xl border ${
+                theme === 'dark' ? 'bg-slate-900/70 border-white/10' : 'bg-white/70 border-black/10'
+              }`}
+            >
+              <div className="flex items-center gap-1">
+                {mobileModes.map((m) => {
+                  const active = !showAllMarkers && selectedMode === m.key;
+                  return (
+                    <button
+                      key={m.key}
+                      onClick={() => {
+                        setSelectedMode(m.key);
+                        setSelectedLocation(null);
+                        setShowAllMarkers(false);
+                      }}
+                      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
+                        active
+                          ? theme === 'dark'
+                            ? 'bg-white/10 text-white'
+                            : 'bg-black/10 text-slate-900'
+                          : theme === 'dark'
+                          ? 'text-slate-200 hover:bg-white/5'
+                          : 'text-slate-700 hover:bg-black/5'
+                      }`}
+                    >
+                      {m.icon}
+                      <span>{m.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setSearchExpanded((p) => !p);
+                    setFiltersExpanded(false);
+                  }}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
+                    theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-slate-200' : 'bg-black/5 hover:bg-black/10 text-slate-700'
+                  }`}
+                  aria-label="Search"
+                >
+                  <Search size={18} />
+                </button>
+                <button
+                  onClick={() => {
+                    setFiltersExpanded((p) => !p);
+                    setSearchExpanded(false);
+                  }}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
+                    theme === 'dark' ? 'bg-white/5 hover:bg-white/10 text-slate-200' : 'bg-black/5 hover:bg-black/10 text-slate-700'
+                  }`}
+                  aria-label="Filters"
+                >
+                  <SlidersHorizontal size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <Sidebar
           selectedMode={selectedMode}
           showAllMarkers={showAllMarkers}
