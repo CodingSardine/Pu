@@ -151,7 +151,9 @@ function addMarkersToMap(
     // Validate coordinates before creating marker
     if (typeof location.lat !== 'number' || typeof location.lng !== 'number' ||
         isNaN(location.lat) || isNaN(location.lng)) {
-      console.warn(`Invalid coordinates for location ${location.id}`, location);
+      if (import.meta.env.DEV) {
+        console.warn(`Invalid coordinates for location ${location.id}`, location);
+      }
       return;
     }
 

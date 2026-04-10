@@ -463,11 +463,11 @@ export default function MapView({
       byCoord.set(key, arr);
     }
     const dupIds = [...byId.entries()].filter(([, n]) => n > 1);
-    if (dupIds.length) {
+    if (dupIds.length && import.meta.env.DEV) {
       console.warn('Duplicate location ids found:', dupIds);
     }
     const dupCoords = [...byCoord.entries()].filter(([, ids]) => ids.length > 1);
-    if (dupCoords.length) {
+    if (dupCoords.length && import.meta.env.DEV) {
       console.warn('Duplicate location coordinates found:', dupCoords);
     }
   }, [allLocations]);

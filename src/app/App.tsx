@@ -185,7 +185,7 @@ async function fetchPlaceByName(locationName: string, signal?: AbortSignal): Pro
   const place = data.places?.[0];
   if (!place) throw new Error('No place found');
 
-  console.log(`Fetched ${locationName}:`, place); // Debug log
+  // Intentionally no console logging here; noisy in production.
 
   // Build photo URLs from up to 4 photos
   const photoUrls: string[] = [];
