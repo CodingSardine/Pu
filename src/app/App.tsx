@@ -5,6 +5,7 @@ import ModeTransitionOverlay from './components/ModeTransitionOverlay';
 import type { PlaceApiData } from './components/LocationCard';
 import ThemeContext from './context/ThemeContext';
 import { Search, SlidersHorizontal, UtensilsCrossed, Focus, Coffee } from 'lucide-react';
+import { LOCATION_NAMES } from './data/locations.base';
 
 /**
  * Pu - Location Finder App for Nicosia, Cyprus
@@ -31,93 +32,7 @@ type Theme = 'dark' | 'light';
 // ---------------------------------------------------------------------------
 const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
 
-// Location names for all 81 locations across all three modes
-const LOCATION_NAMES: Record<string, string> = {
-  // Eat mode
-  avo: 'Avo Armenian Food',
-  piatsa: 'Piatsa Gourounaki',
-  zanettos: 'Zanettos Tavern',
-  toanamma: 'To Anamma',
-  elysian: 'Elysian Fusion Kitchen',
-  falafel: 'Falafel Abu Dany',
-  bellavita: 'Bella Vita',
-  soupculture: 'Soup Culture',
-  mattheos: 'Mattheos Restaurant',
-  entree: 'Entree Restaurant',
-  aroma: 'Aroma Restaurant',
-  meze: 'Mezedopolio Nicosia',
-  sofra: 'Sofra Restaurant Nicosia',
-  kali: 'Kali Orexi Restaurant',
-  agrino: 'Agrino Tavern',
-  lemon: 'Lemon Garden Restaurant',
-  caprice: 'Caprice Restaurant Nicosia',
-  noodles: 'Noodle House Nicosia',
-  sushi: 'Sushimou Nicosia',
-  india: 'India Gate Restaurant Nicosia',
-  lebanese: 'Lebanese Flavours Nicosia',
-  souvlaki: 'O Politikos Souvlaki',
-  pizza: 'Pizza Boom Nicosia',
-  steak: 'The Steak House Nicosia',
-  wok: 'Wok To Walk Nicosia',
-  greek: 'Dionysos Greek Tavern Nicosia',
-  burger: 'Burger Joint Nicosia',
-  // Focus mode
-  yfantourgeio: 'Yfantourgeio',
-  brewlab: 'Brew Lab',
-  workshop: 'The Workshop Cafe',
-  think30: 'Think 30',
-  kofee: 'A Kxofee Project',
-  hub: 'The Hub Nicosia',
-  pieto: 'Pieto Coffee',
-  beanbar: 'Bean Bar Coffee',
-  impact: 'Impact Hub Nicosia',
-  workhive: 'WorkHive Coworking',
-  roasters: 'Roasters Coffee Nicosia',
-  chapters: 'Chapters Coffee and Books',
-  thelab: 'The Lab Cafe',
-  hive: 'Hive Coworking Nicosia',
-  coffeelab: 'Coffee Lab Nicosia',
-  drip: 'Drip Coffee',
-  espresso: 'Espresso Corner Nicosia',
-  grounds: 'Common Grounds Nicosia',
-  workspace: 'Workspace Nicosia',
-  thecorner: 'The Corner Coffee',
-  bricks: 'Bricks Coworking',
-  signal: 'Signal Coffee Nicosia',
-  arthaus: 'Arthaus Coworking',
-  daily: 'Daily Coffee Nicosia',
-  kivo: 'Kivo Art and Cafe',
-  fresco: 'Fresco Cafe Nicosia',
-  junction: 'Junction Coffee',
-  // Chill mode
-  k11: 'Kafeneio 11',
-  balza: 'Bálza Rooftop Bar',
-  halara: 'Halara Cafe',
-  municipal: 'Nicosia Municipal Gardens',
-  skyview: 'SkyView Rooftop Bar',
-  famagusta: 'Famagusta Gate Area',
-  katakwa: 'Katakwa Culture Cafe',
-  plaka: 'Plaka Rooftop Bar',
-  dizzy: 'Dizzy Donkey Bar',
-  verde: 'Cafe Verde Nicosia',
-  acropolis: 'Acropolis Park Nicosia',
-  melis: 'Melis Bar Nicosia',
-  sundowner: 'Sundowner Bar Nicosia',
-  alley: 'The Alley Bar',
-  garden: 'Secret Garden Cafe Nicosia',
-  wall: 'The Wall Bar Nicosia',
-  botanica: 'Botanica Cafe Nicosia',
-  casanova: 'Casanova Bar Nicosia',
-  terrace: 'The Terrace Nicosia',
-  arcade: 'Arcade Bar Nicosia',
-  loft: 'Loft Bar Nicosia',
-  atelier: 'Atelier Cafe Nicosia',
-  olivo: 'Olivo Bar Nicosia',
-  palms: 'Palms Bar Nicosia',
-  vibe: 'The Vibe Bar Nicosia',
-  fig: 'Fig Tree Bar Nicosia',
-  tulum: 'Tulum Bar Nicosia',
-};
+// Location names for all 81 locations come from `src/app/data/locations.base.ts`.
 
 // Module-level cache for place data to avoid re-fetching on mode switches
 const placeDataCache = new Map<string, PlaceApiData>();

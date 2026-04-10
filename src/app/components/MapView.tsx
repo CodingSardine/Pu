@@ -5,6 +5,7 @@ import LiveMap from './LiveMap';
 import { useEffect } from 'react';
 import type L from 'leaflet';
 import { useTheme } from '../context/ThemeContext';
+import { LOCATIONS_BY_MODE } from '../data/locations';
 
 type Mode = 'eat' | 'focus' | 'chill';
 type Theme = 'dark' | 'light';
@@ -349,99 +350,23 @@ export default function MapView({
   const theme = useTheme();
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
-  // All 81 locations — 27 per mode — with full metadata and feature tags
-  const locations = useMemo<Record<Mode, LocationEntry[]>>(
-    () => ({
-      eat: [
-        { id: 'avo', lat: 35.1712, lng: 33.3616, name: 'Avo Armenian Food', address: 'Onasagorou, Nicosia 1011', hours: '8am – 6pm', cuisine: 'Armenian + Cypriot', price: '€', atmosphere: 'Lively', seating: 'Very Limited', gmaps: 'https://www.google.com/maps/search/?api=1&query=Avo+Armenian+Food+Nicosia', features: ['budget', 'outdoor'], mode: 'eat' },
-        { id: 'piatsa', lat: 35.1735, lng: 33.3621, name: 'Piatsa Gourounaki', address: 'Klimentos 4, Nicosia 1060', hours: '12pm – 11pm', cuisine: 'Mediterranean BBQ', price: '€€', atmosphere: 'Vibrant', seating: 'Courtyard', gmaps: 'https://www.google.com/maps/search/?api=1&query=Piatsa+Gourounaki+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'eat' },
-        { id: 'zanettos', lat: 35.1728, lng: 33.3647, name: 'Zanettos Tavern', address: 'Trikoupi 65, Nicosia 1016', hours: '5pm – 11pm', cuisine: 'Traditional Cypriot', price: '€€', atmosphere: 'Authentic', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Zanettos+Tavern+Nicosia', features: ['premium'], mode: 'eat' },
-        { id: 'toanamma', lat: 35.1705, lng: 33.3630, name: 'To Anamma', address: 'Ledras 64, Nicosia 1011', hours: '11am – 11pm', cuisine: 'Cypriot Modern', price: '€€', atmosphere: 'Cozy Courtyard', seating: 'Outdoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=To+Anamma+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'eat' },
-        { id: 'elysian', lat: 35.1696, lng: 33.3575, name: 'Elysian Fusion Kitchen', address: 'Old Town, Nicosia', hours: '9am – 9pm', cuisine: 'Plant-Based Fusion', price: '€', atmosphere: 'Relaxed', seating: 'Indoor + Patio', gmaps: 'https://www.google.com/maps/search/?api=1&query=Elysian+Fusion+Kitchen+Nicosia', features: ['budget', 'outdoor'], mode: 'eat' },
-        { id: 'falafel', lat: 35.1698, lng: 33.3701, name: 'Falafel Abu Dany', address: 'Arsinois, Nicosia 1011', hours: '10am – 8pm', cuisine: 'Middle Eastern', price: '€', atmosphere: 'Casual', seating: 'Takeaway + Counter', gmaps: 'https://www.google.com/maps/search/?api=1&query=Falafel+Abu+Dany+Nicosia', features: ['budget'], mode: 'eat' },
-        { id: 'bellavita', lat: 35.1729, lng: 33.3658, name: 'Bella Vita', address: 'Old Town, Nicosia', hours: '12pm – 11pm', cuisine: 'Italian', price: '€€€', atmosphere: 'Garden Dining', seating: 'Garden', gmaps: 'https://www.google.com/maps/search/?api=1&query=Bella+Vita+Restaurant+Nicosia', features: ['premium', 'outdoor', 'pet-friendly'], mode: 'eat' },
-        { id: 'soupculture', lat: 35.1669, lng: 33.3740, name: 'Soup Culture', address: 'Ledras District, Nicosia 1011', hours: '11am – 10pm', cuisine: 'Soups + Light Meals', price: '€', atmosphere: 'Casual', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Soup+Culture+Nicosia', features: ['budget'], mode: 'eat' },
-        { id: 'mattheos', lat: 35.1762, lng: 33.3572, name: 'Mattheos Restaurant', address: 'Makariou III Ave, Nicosia 1065', hours: '12pm – 11pm', cuisine: 'Cypriot Grill', price: '€€', atmosphere: 'Family Friendly', seating: 'Indoor + Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Mattheos+Restaurant+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'eat' },
-        { id: 'entree', lat: 35.1648, lng: 33.3756, name: 'Entree Restaurant', address: 'Kennedy Ave, Nicosia 1087', hours: '12pm – 11:30pm', cuisine: 'Mediterranean', price: '€€€', atmosphere: 'Refined', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Entree+Restaurant+Nicosia', features: ['premium'], mode: 'eat' },
-        { id: 'aroma', lat: 35.1659, lng: 33.3772, name: 'Aroma Restaurant', address: 'Digeni Akrita, Nicosia 1060', hours: '10am – 11pm', cuisine: 'International', price: '€€', atmosphere: 'Warm', seating: 'Indoor + Veranda', gmaps: 'https://www.google.com/maps/search/?api=1&query=Aroma+Restaurant+Nicosia', features: ['outdoor'], mode: 'eat' },
-        { id: 'meze', lat: 35.1715, lng: 33.3590, name: 'Mezedopolio Nicosia', address: 'Old City Walls, Nicosia 1010', hours: '1pm – 12am', cuisine: 'Cypriot Meze', price: '€€', atmosphere: 'Traditional', seating: 'Courtyard', gmaps: 'https://www.google.com/maps/search/?api=1&query=Mezedopolio+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'eat' },
-        { id: 'sofra', lat: 35.1701, lng: 33.3802, name: 'Sofra Restaurant Nicosia', address: 'Sofouli St, Nicosia 1096', hours: '12pm – 10:30pm', cuisine: 'Middle Eastern', price: '€€', atmosphere: 'Cozy', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Sofra+Restaurant+Nicosia', features: ['pet-friendly'], mode: 'eat' },
-        { id: 'kali', lat: 35.1728, lng: 33.3810, name: 'Kali Orexi Restaurant', address: 'Agiou Andreou, Nicosia 1101', hours: '11:30am – 10pm', cuisine: 'Greek + Cypriot', price: '€', atmosphere: 'Friendly', seating: 'Indoor + Patio', gmaps: 'https://www.google.com/maps/search/?api=1&query=Kali+Orexi+Restaurant+Nicosia', features: ['budget', 'outdoor'], mode: 'eat' },
-        { id: 'agrino', lat: 35.1744, lng: 33.3555, name: 'Agrino Tavern', address: 'Pindarou 22, Nicosia 1060', hours: '12pm – 11pm', cuisine: 'Tavern Classics', price: '€€', atmosphere: 'Rustic', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Agrino+Tavern+Nicosia', features: ['pet-friendly'], mode: 'eat' },
-        { id: 'lemon', lat: 35.1601, lng: 33.3822, name: 'Lemon Garden Restaurant', address: 'Athalassas Ave, Nicosia 2025', hours: '12pm – 10pm', cuisine: 'Garden Bistro', price: '€€€', atmosphere: 'Relaxed Garden', seating: 'Garden', gmaps: 'https://www.google.com/maps/search/?api=1&query=Lemon+Garden+Restaurant+Nicosia', features: ['premium', 'outdoor', 'pet-friendly'], mode: 'eat' },
-        { id: 'caprice', lat: 35.1623, lng: 33.3788, name: 'Caprice Restaurant Nicosia', address: 'Byron Ave, Nicosia 1096', hours: '12pm – 11:30pm', cuisine: 'Fine Dining', price: '€€€', atmosphere: 'Elegant', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Caprice+Restaurant+Nicosia', features: ['premium'], mode: 'eat' },
-        { id: 'noodles', lat: 35.1638, lng: 33.3834, name: 'Noodle House Nicosia', address: 'Stasinou Ave, Nicosia 2002', hours: '11am – 11pm', cuisine: 'Asian Noodles', price: '€', atmosphere: 'Fast Casual', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Noodle+House+Nicosia', features: ['budget'], mode: 'eat' },
-        { id: 'sushi', lat: 35.1655, lng: 33.3613, name: 'Sushimou Nicosia', address: 'Archbishop Makarios III, Nicosia 1065', hours: '12pm – 11pm', cuisine: 'Japanese Sushi', price: '€€€', atmosphere: 'Modern', seating: 'Bar + Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=Sushimou+Nicosia', features: ['premium'], mode: 'eat' },
-        { id: 'india', lat: 35.1682, lng: 33.3571, name: 'India Gate Restaurant Nicosia', address: 'Evripidou, Nicosia 1010', hours: '12pm – 10:30pm', cuisine: 'Indian', price: '€€', atmosphere: 'Aromatic', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=India+Gate+Restaurant+Nicosia', features: ['pet-friendly'], mode: 'eat' },
-        { id: 'lebanese', lat: 35.1610, lng: 33.3601, name: 'Lebanese Flavours Nicosia', address: 'Griva Digeni, Nicosia 1095', hours: '12pm – 10pm', cuisine: 'Lebanese', price: '€€', atmosphere: 'Vibrant', seating: 'Indoor + Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Lebanese+Flavours+Nicosia', features: ['outdoor'], mode: 'eat' },
-        { id: 'souvlaki', lat: 35.1776, lng: 33.3644, name: 'O Politikos Souvlaki', address: 'Nafpliou St, Nicosia 1100', hours: '11am – 12am', cuisine: 'Souvlaki', price: '€', atmosphere: 'Street-Style', seating: 'Counter + Outdoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=O+Politikos+Souvlaki+Nicosia', features: ['budget', 'outdoor'], mode: 'eat' },
-        { id: 'pizza', lat: 35.1792, lng: 33.3665, name: 'Pizza Boom Nicosia', address: 'Diagorou, Nicosia 1097', hours: '11:30am – 11:30pm', cuisine: 'Pizza', price: '€', atmosphere: 'Lively', seating: 'Indoor + Outdoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Pizza+Boom+Nicosia', features: ['budget', 'outdoor', 'pet-friendly'], mode: 'eat' },
-        { id: 'steak', lat: 35.1588, lng: 33.3779, name: 'The Steak House Nicosia', address: 'Acropoleos Ave, Nicosia 2006', hours: '1pm – 12am', cuisine: 'Steakhouse', price: '€€€', atmosphere: 'Upscale', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Steak+House+Nicosia', features: ['premium'], mode: 'eat' },
-        { id: 'wok', lat: 35.1707, lng: 33.3828, name: 'Wok To Walk Nicosia', address: 'Anexartisias, Nicosia 1096', hours: '11am – 11pm', cuisine: 'Asian Wok', price: '€', atmosphere: 'Quick Bite', seating: 'Counter', gmaps: 'https://www.google.com/maps/search/?api=1&query=Wok+To+Walk+Nicosia', features: ['budget'], mode: 'eat' },
-        { id: 'greek', lat: 35.1548, lng: 33.3750, name: 'Dionysos Greek Tavern Nicosia', address: 'Larnacos Ave, Nicosia 2101', hours: '12pm – 11pm', cuisine: 'Greek Tavern', price: '€€', atmosphere: 'Traditional', seating: 'Indoor + Courtyard', gmaps: 'https://www.google.com/maps/search/?api=1&query=Dionysos+Greek+Tavern+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'eat' },
-        { id: 'burger', lat: 35.1631, lng: 33.3845, name: 'Burger Joint Nicosia', address: 'Spyrou Kyprianou Ave, Nicosia 1075', hours: '12pm – 12am', cuisine: 'Burgers', price: '€€', atmosphere: 'Urban Casual', seating: 'Indoor + Patio', gmaps: 'https://www.google.com/maps/search/?api=1&query=Burger+Joint+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'eat' },
-      ],
-      focus: [
-        { id: 'yfantourgeio', lat: 35.1738, lng: 33.3612, name: 'Yfantourgeio', address: 'Ermou 66, Nicosia 1011', hours: '8am – 10pm', cuisine: 'Coworking + Coffee', price: '€€', atmosphere: 'Creative', seating: 'Flexible Desks', gmaps: 'https://www.google.com/maps/search/?api=1&query=Yfantourgeio+Nicosia', features: ['wifi', 'power', 'outdoor'], mode: 'focus' },
-        { id: 'brewlab', lat: 35.1669, lng: 33.3582, name: 'Brew Lab', address: 'Stasikratous 3, Nicosia 1066', hours: '7am – 7pm', cuisine: 'Specialty Coffee', price: '€€', atmosphere: 'Focused', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Brew+Lab+Stasikratous+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'workshop', lat: 35.1695, lng: 33.3625, name: 'The Workshop Cafe', address: 'Old Town, Nicosia', hours: '8am – 6pm', cuisine: 'Coffee & Pastries', price: '€', atmosphere: 'Quiet & Studious', seating: 'Tables + Outlets', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Workshop+Cafe+Nicosia', features: ['wifi', 'power', 'budget'], mode: 'focus' },
-        { id: 'think30', lat: 35.1652, lng: 33.3600, name: 'Think 30', address: 'Stasikratous, Nicosia', hours: '8am – 8pm', cuisine: 'Coffee & Bites', price: '€€', atmosphere: 'Modern', seating: 'Indoor + Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Think+30+Stasikratous+Nicosia', features: ['wifi', 'power', 'outdoor'], mode: 'focus' },
-        { id: 'kofee', lat: 35.1725, lng: 33.3638, name: 'A Kxofee Project', address: 'Nicosia Old Town', hours: '7:30am – 5pm', cuisine: 'Specialty Coffee', price: '€', atmosphere: 'Busy & Creative', seating: 'Limited + Laptop-Friendly', gmaps: 'https://www.google.com/maps/search/?api=1&query=A+Kxofee+Project+Nicosia', features: ['wifi', 'budget'], mode: 'focus' },
-        { id: 'hub', lat: 35.1757, lng: 33.3596, name: 'The Hub Nicosia', address: 'Ermou, Nicosia', hours: '9am – 8pm', cuisine: 'Coworking Space', price: '€€', atmosphere: 'Professional', seating: 'Hot Desks + Meeting Rooms', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Hub+Nicosia+Coworking', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'pieto', lat: 35.1716, lng: 33.3608, name: 'Pieto Coffee', address: 'Old Town, Nicosia', hours: '7am – 6pm', cuisine: 'Artisan Coffee', price: '€', atmosphere: 'Minimalist', seating: 'Counter + Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=Pieto+Coffee+Nicosia', features: ['wifi', 'budget'], mode: 'focus' },
-        { id: 'beanbar', lat: 35.1652, lng: 33.3571, name: 'Bean Bar Coffee', address: 'Stasikratous, Nicosia 1066', hours: '7am – 7pm', cuisine: 'Specialty Coffee', price: '€€', atmosphere: 'Calm', seating: 'Indoor Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=Bean+Bar+Coffee+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'impact', lat: 35.1808, lng: 33.3642, name: 'Impact Hub Nicosia', address: 'Old Powerhouse, Nicosia 1016', hours: '8am – 8pm', cuisine: 'Coworking Hub', price: '€€', atmosphere: 'Innovative', seating: 'Hot Desks', gmaps: 'https://www.google.com/maps/search/?api=1&query=Impact+Hub+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'workhive', lat: 35.1638, lng: 33.3590, name: 'WorkHive Coworking', address: 'Makariou Avenue, Nicosia 1065', hours: '8am – 9pm', cuisine: 'Coworking + Cafe', price: '€€', atmosphere: 'Professional', seating: 'Work Pods', gmaps: 'https://www.google.com/maps/search/?api=1&query=WorkHive+Coworking+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'roasters', lat: 35.1669, lng: 33.3556, name: 'Roasters Coffee Nicosia', address: 'Evagorou St, Nicosia 1066', hours: '7am – 6pm', cuisine: 'Coffee Roastery', price: '€', atmosphere: 'Focused', seating: 'Window Bar + Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=Roasters+Coffee+Nicosia', features: ['wifi', 'power', 'budget'], mode: 'focus' },
-        { id: 'chapters', lat: 35.1680, lng: 33.3548, name: 'Chapters Coffee and Books', address: 'Ledra Street, Nicosia 1011', hours: '8am – 9pm', cuisine: 'Coffee + Books', price: '€€', atmosphere: 'Quiet', seating: 'Reading Nooks', gmaps: 'https://www.google.com/maps/search/?api=1&query=Chapters+Coffee+and+Books+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'thelab', lat: 35.1595, lng: 33.3611, name: 'The Lab Cafe', address: 'Kallipoleos Ave, Nicosia 1055', hours: '7:30am – 8pm', cuisine: 'Coffee + Snacks', price: '€', atmosphere: 'Minimal', seating: 'Shared Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Lab+Cafe+Nicosia', features: ['wifi', 'power', 'budget'], mode: 'focus' },
-        { id: 'hive', lat: 35.1623, lng: 33.3633, name: 'Hive Coworking Nicosia', address: 'Digeni Akrita Ave, Nicosia 1061', hours: '8am – 10pm', cuisine: 'Coworking Space', price: '€€', atmosphere: 'Collaborative', seating: 'Desks + Lounge', gmaps: 'https://www.google.com/maps/search/?api=1&query=Hive+Coworking+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'coffeelab', lat: 35.1580, lng: 33.3798, name: 'Coffee Lab Nicosia', address: 'Athalassas Ave, Nicosia 2025', hours: '7am – 7pm', cuisine: 'Coffee Lab', price: '€€', atmosphere: 'Energetic', seating: 'Indoor + Counter', gmaps: 'https://www.google.com/maps/search/?api=1&query=Coffee+Lab+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'drip', lat: 35.1706, lng: 33.3594, name: 'Drip Coffee', address: 'Onasagorou, Nicosia 1011', hours: '7:30am – 6:30pm', cuisine: 'Pour-Over Coffee', price: '€', atmosphere: 'Quiet', seating: 'Counter + Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=Drip+Coffee+Nicosia', features: ['wifi', 'budget'], mode: 'focus' },
-        { id: 'espresso', lat: 35.1680, lng: 33.3700, name: 'Espresso Corner Nicosia', address: 'Solomou Square, Nicosia 1096', hours: '7am – 7pm', cuisine: 'Espresso Bar', price: '€', atmosphere: 'Casual Work Spot', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Espresso+Corner+Nicosia', features: ['wifi', 'power', 'budget'], mode: 'focus' },
-        { id: 'grounds', lat: 35.1618, lng: 33.3590, name: 'Common Grounds Nicosia', address: 'Arsinois, Nicosia 1011', hours: '8am – 8pm', cuisine: 'Cafe + Brunch', price: '€€', atmosphere: 'Community', seating: 'Long Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=Common+Grounds+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'workspace', lat: 35.1601, lng: 33.3652, name: 'Workspace Nicosia', address: 'Griva Digeni, Nicosia 1095', hours: '8am – 8pm', cuisine: 'Coworking', price: '€€', atmosphere: 'Professional', seating: 'Dedicated Desks', gmaps: 'https://www.google.com/maps/search/?api=1&query=Workspace+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'thecorner', lat: 35.1617, lng: 33.3770, name: 'The Corner Coffee', address: 'Stasinou Ave, Nicosia 2002', hours: '7am – 7pm', cuisine: 'Coffee + Pastries', price: '€', atmosphere: 'Cozy', seating: 'Corner Tables', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Corner+Coffee+Nicosia', features: ['wifi', 'power', 'budget'], mode: 'focus' },
-        { id: 'bricks', lat: 35.1644, lng: 33.3744, name: 'Bricks Coworking', address: 'Kennedy Ave, Nicosia 1076', hours: '8am – 9pm', cuisine: 'Coworking', price: '€€', atmosphere: 'Industrial Modern', seating: 'Desks + Booths', gmaps: 'https://www.google.com/maps/search/?api=1&query=Bricks+Coworking+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'signal', lat: 35.1758, lng: 33.3662, name: 'Signal Coffee Nicosia', address: 'Agiou Andreou, Nicosia 1101', hours: '7:30am – 7pm', cuisine: 'Specialty Coffee', price: '€€', atmosphere: 'Focused', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Signal+Coffee+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'arthaus', lat: 35.1584, lng: 33.3672, name: 'Arthaus Coworking', address: 'Lycavitos, Nicosia 1070', hours: '8am – 8pm', cuisine: 'Creative Workspace', price: '€€', atmosphere: 'Artistic', seating: 'Studios + Desks', gmaps: 'https://www.google.com/maps/search/?api=1&query=Arthaus+Coworking+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'daily', lat: 35.1768, lng: 33.3680, name: 'Daily Coffee Nicosia', address: 'Nafpliou, Nicosia 1100', hours: '7am – 6pm', cuisine: 'Coffee Bar', price: '€', atmosphere: 'Simple & Quiet', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Daily+Coffee+Nicosia', features: ['wifi', 'budget'], mode: 'focus' },
-        { id: 'kivo', lat: 35.1879, lng: 33.3793, name: 'Kivo Art and Cafe', address: 'Old Town Quarter, Nicosia 1011', hours: '8am – 9pm', cuisine: 'Cafe + Art Space', price: '€€', atmosphere: 'Creative Calm', seating: 'Tables + Gallery Corner', gmaps: 'https://www.google.com/maps/search/?api=1&query=Kivo+Art+and+Cafe+Nicosia', features: ['wifi', 'power'], mode: 'focus' },
-        { id: 'fresco', lat: 35.1595, lng: 33.3834, name: 'Fresco Cafe Nicosia', address: 'Acropolis District, Nicosia 2012', hours: '7:30am – 8pm', cuisine: 'Cafe', price: '€', atmosphere: 'Bright', seating: 'Indoor + Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Fresco+Cafe+Nicosia', features: ['wifi', 'power', 'budget', 'outdoor'], mode: 'focus' },
-        { id: 'junction', lat: 35.1828, lng: 33.3812, name: 'Junction Coffee', address: 'Kaimakli Rd, Nicosia 1020', hours: '7am – 7pm', cuisine: 'Coffee + Bakes', price: '€', atmosphere: 'Neighborhood', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Junction+Coffee+Nicosia', features: ['wifi', 'power', 'budget'], mode: 'focus' },
-      ],
-      chill: [
-        { id: 'k11', lat: 35.1720, lng: 33.3600, name: 'Kafeneio 11', address: 'Soutsou & Pyreos Corner, Nicosia 1016', hours: '12pm – 12am (Mon Closed)', cuisine: 'Coffee + Drinks', price: '€', atmosphere: 'Traditional Cypriot', seating: 'Indoor + Courtyard', gmaps: 'https://www.google.com/maps/search/?api=1&query=Kafeneio+11+Nicosia', features: ['outdoor', 'pet-friendly', 'budget'], mode: 'chill' },
-        { id: 'balza', lat: 35.1681, lng: 33.3628, name: 'Bálza Rooftop Bar', address: 'Evagoras, Megaro Hadjisavva, Nicosia', hours: '8pm – 1am', cuisine: 'Cocktails + Dining', price: '€€€', atmosphere: 'Rooftop Vibes', seating: 'Rooftop Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Balza+Rooftop+Bar+Nicosia', features: ['outdoor', 'premium'], mode: 'chill' },
-        { id: 'halara', lat: 35.1745, lng: 33.3640, name: 'Halara Cafe', address: 'Old Town, Nicosia', hours: '9am – 12am', cuisine: 'Coffee & Cocktails', price: '€', atmosphere: 'Laid-Back', seating: 'Indoor + Outdoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Halara+Cafe+Nicosia', features: ['outdoor', 'pet-friendly', 'budget'], mode: 'chill' },
-        { id: 'municipal', lat: 35.1720, lng: 33.3551, name: 'Nicosia Municipal Gardens', address: 'Mouseiou, Nicosia', hours: 'All day', cuisine: 'Park', price: 'Free', atmosphere: 'Green & Peaceful', seating: 'Benches + Lawn', gmaps: 'https://www.google.com/maps/search/?api=1&query=Nicosia+Municipal+Gardens', features: ['outdoor', 'pet-friendly', 'budget'], mode: 'chill' },
-        { id: 'skyview', lat: 35.1695, lng: 33.3646, name: 'SkyView Rooftop Bar', address: 'Nicosia Center', hours: '6pm – 1am', cuisine: 'Cocktails', price: '€€€', atmosphere: 'Sunset Views', seating: 'Rooftop', gmaps: 'https://www.google.com/maps/search/?api=1&query=SkyView+Rooftop+Bar+Nicosia', features: ['outdoor', 'premium'], mode: 'chill' },
-        { id: 'famagusta', lat: 35.1743, lng: 33.3710, name: 'Famagusta Gate Area', address: 'Athinas Ave, Nicosia 1016', hours: 'All day', cuisine: 'Cultural Landmark', price: 'Free', atmosphere: 'Historic & Calm', seating: 'Open-Air', gmaps: 'https://www.google.com/maps/search/?api=1&query=Famagusta+Gate+Nicosia', features: ['outdoor', 'pet-friendly', 'budget'], mode: 'chill' },
-        { id: 'katakwa', lat: 35.1738, lng: 33.3645, name: 'Katakwa Culture Cafe', address: 'Armenias 53E, Nicosia 2003', hours: '9am – 8pm', cuisine: 'Vegan Treats + Coffee', price: '€', atmosphere: 'Tribal Art Vibes', seating: 'Cozy Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Katakwa+Culture+Art+Cafe+Nicosia', features: ['budget'], mode: 'chill' },
-        { id: 'plaka', lat: 35.1692, lng: 33.3528, name: 'Plaka Rooftop Bar', address: 'Makariou III, Nicosia 1065', hours: '6pm – 2am', cuisine: 'Cocktails + Small Plates', price: '€€€', atmosphere: 'Rooftop Chic', seating: 'Rooftop', gmaps: 'https://www.google.com/maps/search/?api=1&query=Plaka+Rooftop+Bar+Nicosia', features: ['outdoor', 'premium'], mode: 'chill' },
-        { id: 'dizzy', lat: 35.1731, lng: 33.3598, name: 'Dizzy Donkey Bar', address: 'Old City, Nicosia 1011', hours: '7pm – 2am', cuisine: 'Bar + Snacks', price: '€€', atmosphere: 'Playful', seating: 'Indoor + Street Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Dizzy+Donkey+Bar+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'chill' },
-        { id: 'verde', lat: 35.1592, lng: 33.3815, name: 'Cafe Verde Nicosia', address: 'Athalassas Ave, Nicosia 2025', hours: '9am – 11pm', cuisine: 'Cafe', price: '€', atmosphere: 'Green & Calm', seating: 'Garden Seating', gmaps: 'https://www.google.com/maps/search/?api=1&query=Cafe+Verde+Nicosia', features: ['outdoor', 'budget', 'pet-friendly'], mode: 'chill' },
-        { id: 'acropolis', lat: 35.1573, lng: 33.3828, name: 'Acropolis Park Nicosia', address: 'Acropoleos Area, Nicosia 2012', hours: 'All day', cuisine: 'Urban Park', price: 'Free', atmosphere: 'Open & Quiet', seating: 'Benches + Grass', gmaps: 'https://www.google.com/maps/search/?api=1&query=Acropolis+Park+Nicosia', features: ['outdoor', 'pet-friendly', 'budget'], mode: 'chill' },
-        { id: 'melis', lat: 35.1662, lng: 33.3712, name: 'Melis Bar Nicosia', address: 'Lykavitos, Nicosia 1070', hours: '6pm – 1am', cuisine: 'Wine + Cocktails', price: '€€€', atmosphere: 'Stylish', seating: 'Indoor Lounge', gmaps: 'https://www.google.com/maps/search/?api=1&query=Melis+Bar+Nicosia', features: ['premium'], mode: 'chill' },
-        { id: 'sundowner', lat: 35.1639, lng: 33.3691, name: 'Sundowner Bar Nicosia', address: 'City Center, Nicosia 1066', hours: '5pm – 1am', cuisine: 'Sunset Cocktails', price: '€€€', atmosphere: 'Golden Hour Vibes', seating: 'Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Sundowner+Bar+Nicosia', features: ['outdoor', 'premium'], mode: 'chill' },
-        { id: 'alley', lat: 35.1720, lng: 33.3663, name: 'The Alley Bar', address: 'Backlane Quarter, Nicosia 1010', hours: '6pm – 2am', cuisine: 'Bar', price: '€€', atmosphere: 'Hidden Gem', seating: 'Alley Patio', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Alley+Bar+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'chill' },
-        { id: 'garden', lat: 35.1841, lng: 33.3742, name: 'Secret Garden Cafe Nicosia', address: 'Pallouriotissa, Nicosia 1040', hours: '9am – 12am', cuisine: 'Cafe + Drinks', price: '€', atmosphere: 'Garden Escape', seating: 'Garden Courtyard', gmaps: 'https://www.google.com/maps/search/?api=1&query=Secret+Garden+Cafe+Nicosia', features: ['outdoor', 'pet-friendly', 'budget'], mode: 'chill' },
-        { id: 'wall', lat: 35.1727, lng: 33.3718, name: 'The Wall Bar Nicosia', address: 'Inside the Walls, Nicosia 1016', hours: '7pm – 2am', cuisine: 'Craft Cocktails', price: '€€€', atmosphere: 'Historic Nightlife', seating: 'Indoor + Patio', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Wall+Bar+Nicosia', features: ['outdoor', 'premium'], mode: 'chill' },
-        { id: 'botanica', lat: 35.1855, lng: 33.3758, name: 'Botanica Cafe Nicosia', address: 'Nicosia Green Belt, Nicosia 1080', hours: '8am – 10pm', cuisine: 'Cafe + Desserts', price: '€€', atmosphere: 'Botanical', seating: 'Plant-Filled Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Botanica+Cafe+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'chill' },
-        { id: 'casanova', lat: 35.1634, lng: 33.3728, name: 'Casanova Bar Nicosia', address: 'Kennedy Quarter, Nicosia 1076', hours: '7pm – 2am', cuisine: 'Cocktail Bar', price: '€€€', atmosphere: 'Romantic', seating: 'Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Casanova+Bar+Nicosia', features: ['premium'], mode: 'chill' },
-        { id: 'terrace', lat: 35.1618, lng: 33.3745, name: 'The Terrace Nicosia', address: 'Sofouli Area, Nicosia 1096', hours: '5pm – 1am', cuisine: 'Bar + Bites', price: '€€', atmosphere: 'Open-Air Lounge', seating: 'Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Terrace+Nicosia', features: ['outdoor'], mode: 'chill' },
-        { id: 'arcade', lat: 35.1652, lng: 33.3660, name: 'Arcade Bar Nicosia', address: 'Ledra Arcade, Nicosia 1011', hours: '6pm – 2am', cuisine: 'Bar', price: '€€', atmosphere: 'Retro', seating: 'Indoor + Balcony', gmaps: 'https://www.google.com/maps/search/?api=1&query=Arcade+Bar+Nicosia', features: ['premium'], mode: 'chill' },
-        { id: 'loft', lat: 35.1655, lng: 33.3559, name: 'Loft Bar Nicosia', address: 'Makarios Business District, Nicosia 1065', hours: '6pm – 1:30am', cuisine: 'Cocktails', price: '€€€', atmosphere: 'Urban Loft', seating: 'Lounge Seating', gmaps: 'https://www.google.com/maps/search/?api=1&query=Loft+Bar+Nicosia', features: ['premium'], mode: 'chill' },
-        { id: 'atelier', lat: 35.1671, lng: 33.3602, name: 'Atelier Cafe Nicosia', address: 'Armenias Street, Nicosia 2003', hours: '9am – 11pm', cuisine: 'Cafe + Brunch', price: '€€', atmosphere: 'Artsy', seating: 'Indoor + Patio', gmaps: 'https://www.google.com/maps/search/?api=1&query=Atelier+Cafe+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'chill' },
-        { id: 'olivo', lat: 35.1627, lng: 33.3613, name: 'Olivo Bar Nicosia', address: 'Byron Ave, Nicosia 1096', hours: '6pm – 1am', cuisine: 'Wine + Mezze', price: '€€', atmosphere: 'Mediterranean Lounge', seating: 'Patio + Indoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Olivo+Bar+Nicosia', features: ['outdoor'], mode: 'chill' },
-        { id: 'palms', lat: 35.1686, lng: 33.3785, name: 'Palms Bar Nicosia', address: 'Agiou Omologitou, Nicosia 1080', hours: '7pm – 2am', cuisine: 'Tropical Cocktails', price: '€€€', atmosphere: 'Lively', seating: 'Indoor + Outdoor', gmaps: 'https://www.google.com/maps/search/?api=1&query=Palms+Bar+Nicosia', features: ['outdoor', 'premium'], mode: 'chill' },
-        { id: 'vibe', lat: 35.1780, lng: 33.3704, name: 'The Vibe Bar Nicosia', address: 'Syndicatos, Nicosia 1101', hours: '7pm – 2am', cuisine: 'Bar + DJ Nights', price: '€€', atmosphere: 'Energetic', seating: 'Standing + Booths', gmaps: 'https://www.google.com/maps/search/?api=1&query=The+Vibe+Bar+Nicosia', features: ['premium'], mode: 'chill' },
-        { id: 'fig', lat: 35.1570, lng: 33.3812, name: 'Fig Tree Bar Nicosia', address: 'Athalassas Blvd, Nicosia 2025', hours: '6pm – 1am', cuisine: 'Cocktails + Small Plates', price: '€€', atmosphere: 'Relaxed Evening', seating: 'Garden Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Fig+Tree+Bar+Nicosia', features: ['outdoor', 'pet-friendly'], mode: 'chill' },
-        { id: 'tulum', lat: 35.1761, lng: 33.3720, name: 'Tulum Bar Nicosia', address: 'Inner Ring Road, Nicosia 1097', hours: '6pm – 2am', cuisine: 'Cocktails', price: '€€€', atmosphere: 'Boho Nightspot', seating: 'Indoor + Terrace', gmaps: 'https://www.google.com/maps/search/?api=1&query=Tulum+Bar+Nicosia', features: ['outdoor', 'premium'], mode: 'chill' },
-      ],
-    }),
-    []
-  );
+  // Locations come from `src/app/data/locations.ts`.
+  // If `locations.resolved.json` is populated, it will include lat/lng + placeId + googleMapsUri.
+  const locations = useMemo<Record<Mode, LocationEntry[]>>(() => {
+    const toEntry = (l: any): LocationEntry => ({
+      id: l.id,
+      name: l.name,
+      mode: l.mode,
+      features: Array.isArray(l.features) ? l.features : [],
+      lat: typeof l.lat === 'number' ? l.lat : NaN,
+      lng: typeof l.lng === 'number' ? l.lng : NaN,
+    });
+    return {
+      eat: (LOCATIONS_BY_MODE.eat as any[]).map(toEntry),
+      focus: (LOCATIONS_BY_MODE.focus as any[]).map(toEntry),
+      chill: (LOCATIONS_BY_MODE.chill as any[]).map(toEntry),
+    };
+  }, []);
 
   const currentLocations = useMemo(() => locations[selectedMode], [locations, selectedMode]);
 
@@ -457,19 +382,16 @@ export default function MapView({
     const byCoord = new Map<string, string[]>();
     for (const loc of allLocations) {
       byId.set(loc.id, (byId.get(loc.id) ?? 0) + 1);
+      if (!Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) continue;
       const key = `${loc.lat.toFixed(6)},${loc.lng.toFixed(6)}`;
       const arr = byCoord.get(key) ?? [];
       arr.push(loc.id);
       byCoord.set(key, arr);
     }
-    const dupIds = [...byId.entries()].filter(([, n]) => n > 1);
-    if (dupIds.length && import.meta.env.DEV) {
-      console.warn('Duplicate location ids found:', dupIds);
-    }
+    // If you need duplicate diagnostics, re-enable logging here.
+    // const dupIds = [...byId.entries()].filter(([, n]) => n > 1);
     const dupCoords = [...byCoord.entries()].filter(([, ids]) => ids.length > 1);
-    if (dupCoords.length && import.meta.env.DEV) {
-      console.warn('Duplicate location coordinates found:', dupCoords);
-    }
+    void dupCoords;
   }, [allLocations]);
 
   // Apply search (name + cuisine) and feature filters
@@ -541,12 +463,15 @@ export default function MapView({
     const prevId = prevSelectedLocationRef.current;
     if (prevId && !selectedLocation && mapInstanceRef.current) {
       const loc = allLocationsFlat.find((l) => l.id === prevId);
-      if (loc) {
-        mapInstanceRef.current.panTo([loc.lat, loc.lng], { animate: true, duration: 0.4 });
+      const pd = placeData[prevId] ?? null;
+      const lat = pd?.lat ?? loc?.lat;
+      const lng = pd?.lng ?? loc?.lng;
+      if (typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng)) {
+        mapInstanceRef.current.panTo([lat, lng], { animate: true, duration: 0.4 });
       }
     }
     prevSelectedLocationRef.current = selectedLocation;
-  }, [selectedLocation, allLocationsFlat]);
+  }, [selectedLocation, allLocationsFlat, placeData]);
 
   // When a marker is clicked, just select it (don't switch modes in all-markers view)
   const handleLocationSelect = (id: string | null) => {
@@ -576,7 +501,14 @@ export default function MapView({
         <LiveMap
           selectedMode={selectedMode}
           showAllMarkers={showAllMarkers}
-          locations={filteredLocations}
+          locations={filteredLocations
+            .map((l) => {
+              const pd = placeData[l.id] ?? null;
+              const lat = pd?.lat ?? l.lat;
+              const lng = pd?.lng ?? l.lng;
+              return { ...l, lat, lng };
+            })
+            .filter((l) => Number.isFinite(l.lat) && Number.isFinite(l.lng))}
           selectedLocation={selectedLocation}
           onLocationSelect={handleLocationSelect}
           onMapReady={(map) => { mapInstanceRef.current = map; }}
