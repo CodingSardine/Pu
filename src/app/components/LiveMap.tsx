@@ -290,6 +290,7 @@ export default function LiveMap({
   const prevShowAllRef = useRef<boolean>(showAllMarkers);
   const prevThemeRef = useRef<'dark' | 'light'>(theme);
   const prevLocationsRef = useRef<Location[]>(locations);
+  const prevLocationIdsRef = useRef<string>('');
   const transitionLockRef = useRef(false);
   const isAnimatingRef = useRef(false);
   const tileLayerMountedRef = useRef(false);
@@ -395,11 +396,13 @@ export default function LiveMap({
     const isModeChange = prevModeRef.current !== selectedMode;
     const isAllMarkersChange = prevShowAllRef.current !== showAllMarkers;
     const isThemeChange = prevThemeRef.current !== theme;
-    const isSameLocationsRef = prevLocationsRef.current === locations;
+    const currentIds = locations.map((l) => l.id).join('|');
+    const sameIds = prevLocationIdsRef.current === currentIds;
     prevModeRef.current = selectedMode;
     prevShowAllRef.current = showAllMarkers;
     prevThemeRef.current = theme;
     prevLocationsRef.current = locations;
+    prevLocationIdsRef.current = currentIds;
 
     const needsTransition = (isModeChange || isAllMarkersChange) &&
       !transitionLockRef.current &&
@@ -458,21 +461,32 @@ export default function LiveMap({
       // Guard against this branch firing while a transition is in flight.
       if (isAnimatingRef.current) return;
 
-      // If this is *only* a selection change, do not recreate markers (avoids replaying enter animations).
-      const isSelectionOnlyChange = isSameLocationsRef && !isModeChange && !isAllMarkersChange && !isThemeChange;
-      if (isSelectionOnlyChange && Object.keys(markersRef.current).length > 0) {
+      // If ids haven't changed, update incrementally (no remove/re-add).
+      const canIncrementallyUpdate = sameIds && !isModeChange && !isAllMarkersChange && !isThemeChange;
+      if (canIncrementallyUpdate && Object.keys(markersRef.current).length > 0) {
+        let missingMarker = false;
+
         locations.forEach((location) => {
           const marker = markersRef.current[location.id];
-          if (!marker) return;
+          if (!marker) {
+            missingMarker = true;
+            return;
+          }
+
+          marker.setLatLng([location.lat, location.lng]);
+
           const isSelected = selectedLocation === location.id;
           const markerColor = showAllMarkers && location.mode
             ? getModeColor(location.mode, theme)
             : modeColor;
+
           marker.setIcon(
             buildIcon(markerColor, isSelected, 0, false, theme, showAllMarkers, location.mode, location.name)
           );
         });
-        return;
+
+        if (!missingMarker) return;
+        // fallthrough to full rebuild if something got out of sync
       }
 
       // Rebuild markers for initial load / filter changes / theme changes, but animate only on first add.
