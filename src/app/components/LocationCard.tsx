@@ -3,6 +3,11 @@ import { X, MapPin, Clock, UtensilsCrossed, DollarSign, Wind, Armchair, External
 import { useTheme } from '../context/ThemeContext';
 
 export interface PlaceApiData {
+  placeId?: string;
+  googleMapsUri?: string;
+  lat?: number;
+  lng?: number;
+  description?: string;
   photoUrls?: string[];
   rating?: number;
   userRatingCount?: number;
@@ -137,6 +142,11 @@ function ImageCarousel({
       <img
         src={images[currentIndex]}
         alt={`${locationName} - Image ${currentIndex + 1}`}
+        onError={() => {
+          // If an image fails (expired media URL / blocked fetch), skip it.
+          if (images.length <= 1) return;
+          setCurrentIndex((prev) => (prev + 1) % images.length);
+        }}
         className="absolute inset-0 max-w-none object-cover pointer-events-none size-full transition-opacity duration-300"
       />
       {images.length > 1 && (
@@ -190,6 +200,7 @@ function GenericLocationCard({
   const images = placeData?.photoUrls && placeData.photoUrls.length > 0 ? placeData.photoUrls : [];
   const displayAddress = placeData?.address ?? location.address;
   const displayHours = placeData?.hours ?? location.hours;
+  const displayDescription = placeData?.description;
 
   return (
     <div className="relative w-full" style={{ animation: 'fadeIn 0.2s ease-out' }}>
@@ -224,6 +235,12 @@ function GenericLocationCard({
             <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[28px] text-[#101828] text-[20px]">
               {location.name}
             </p>
+
+            {displayDescription && (
+              <p className="font-normal leading-[20px] text-[#4a5565] text-[14px]">
+                {displayDescription}
+              </p>
+            )}
 
             {placeData?.rating != null && (
               <div className="flex items-center gap-[6px]">
@@ -295,10 +312,15 @@ function GenericLocationCard({
               </div>
             </div>
 
-            {location.gmaps && (
+            {(placeData?.googleMapsUri || placeData?.placeId || location.gmaps) && (
               <div className="pb-[20px] w-full">
                 <a
-                  href={location.gmaps}
+                  href={
+                    placeData?.googleMapsUri ||
+                    (placeData?.placeId
+                      ? `https://www.google.com/maps/search/?api=1&query_place_id=${placeData.placeId}`
+                      : location.gmaps)
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-white text-[13px] font-semibold transition-all hover:opacity-90"

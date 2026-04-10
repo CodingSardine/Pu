@@ -405,6 +405,27 @@ export default function MapView({
     [locations]
   );
 
+  // Quick sanity checks for duplicates (ids / exact coordinates).
+  useEffect(() => {
+    const byId = new Map<string, number>();
+    const byCoord = new Map<string, string[]>();
+    for (const loc of allLocations) {
+      byId.set(loc.id, (byId.get(loc.id) ?? 0) + 1);
+      const key = `${loc.lat.toFixed(6)},${loc.lng.toFixed(6)}`;
+      const arr = byCoord.get(key) ?? [];
+      arr.push(loc.id);
+      byCoord.set(key, arr);
+    }
+    const dupIds = [...byId.entries()].filter(([, n]) => n > 1);
+    if (dupIds.length) {
+      console.warn('Duplicate location ids found:', dupIds);
+    }
+    const dupCoords = [...byCoord.entries()].filter(([, ids]) => ids.length > 1);
+    if (dupCoords.length) {
+      console.warn('Duplicate location coordinates found:', dupCoords);
+    }
+  }, [allLocations]);
+
   // Apply search (name + cuisine) and feature filters
   const filteredLocations = useMemo(() => {
     const source = showAllMarkers ? allLocations : currentLocations;

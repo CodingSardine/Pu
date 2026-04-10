@@ -305,7 +305,14 @@ export default function LiveMap({
       theme === 'dark'
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
         : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      { attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 20 }
+      {
+        attribution: '© OpenStreetMap contributors © CARTO',
+        maxZoom: 20,
+        // Performance: reduce tile churn during drag/zoom.
+        updateWhenIdle: true,
+        updateWhenZooming: false,
+        keepBuffer: 2,
+      }
     ).addTo(map);
 
     tileLayerRef.current = tileLayer;
@@ -346,6 +353,9 @@ export default function LiveMap({
     tileLayerRef.current = L.tileLayer(tileUrl, {
       attribution: '© OpenStreetMap contributors © CARTO',
       maxZoom: 20,
+      updateWhenIdle: true,
+      updateWhenZooming: false,
+      keepBuffer: 2,
     }).addTo(mapRef.current);
   }, [theme]);
 

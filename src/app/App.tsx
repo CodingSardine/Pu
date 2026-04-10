@@ -166,7 +166,7 @@ async function fetchPlaceByName(locationName: string, signal?: AbortSignal): Pro
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
         'X-Goog-FieldMask':
-          'places.id,places.photos.name,places.rating,places.userRatingCount,places.formattedAddress,places.regularOpeningHours',
+          'places.id,places.googleMapsUri,places.location,places.editorialSummary,places.photos.name,places.rating,places.userRatingCount,places.formattedAddress,places.regularOpeningHours',
       },
       body: JSON.stringify({
         textQuery: `${locationName} Nicosia Cyprus`,
@@ -210,6 +210,11 @@ async function fetchPlaceByName(locationName: string, signal?: AbortSignal): Pro
   const hours = todayEntry ? todayEntry.replace(/^[^:]+:\s*/, '') : undefined;
 
   return {
+    placeId: place.id,
+    googleMapsUri: place.googleMapsUri,
+    lat: place.location?.latitude,
+    lng: place.location?.longitude,
+    description: place.editorialSummary?.text,
     photoUrls: photoUrls.length > 0 ? photoUrls : undefined,
     rating: place.rating,
     userRatingCount: place.userRatingCount,
@@ -304,7 +309,8 @@ export default function App() {
 
               const finalPlaceData: PlaceApiData = {
                 ...data,
-                photoUrls: blobUrls,
+                // If blob conversion fails, keep source URLs so images still render.
+                photoUrls: blobUrls ?? data.photoUrls,
               };
 
               batchMerged[id] = finalPlaceData;
