@@ -138,6 +138,7 @@ function addMarkersToMap(
   stagger: boolean,
   theme: 'dark' | 'light' = 'dark',
   showAllMarkers = false,
+  staggerStepMs = 60,
 ) {
   locations.forEach((location, index) => {
     // Validate coordinates before creating marker
@@ -148,7 +149,7 @@ function addMarkersToMap(
     }
 
     const isSelected = selectedLocation === location.id;
-    const delay = stagger ? index * 60 : 0;
+    const delay = stagger ? index * staggerStepMs : 0;
 
     // In all-markers mode, use the location's own mode color
     const markerColor = showAllMarkers && location.mode
@@ -358,11 +359,12 @@ export default function LiveMap({
       }, exitDuration);
 
       return () => clearTimeout(timer);
-    } else if (!isModeChange && !isAllMarkersChange) {
-      // Selection change or initial load — just refresh markers instantly
+    } else {
+      // Selection change, initial load, filter updates, or non-transition mode/all-state changes.
+      // Always use a snappy stagger so markers never pop in.
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
-      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, false, theme, showAllMarkers);
+      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, onLocationSelect, true, theme, showAllMarkers, 30);
     }
   }, [locations, selectedLocation, selectedMode, showAllMarkers, onLocationSelect, theme]);
 
