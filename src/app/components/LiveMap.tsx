@@ -24,15 +24,15 @@ interface LiveMapProps {
 }
 
 const MODE_COLORS = {
-  eat: '#14b8a6',
-  focus: '#f43f5e',
-  chill: '#6366f1',
+  eat: '#0ea5a6',
+  focus: '#fb7185',
+  chill: '#818cf8',
 };
 
 const MODE_COLORS_LIGHT = {
-  eat: '#2a9d8f',
-  focus: '#9b2335',
-  chill: '#4a5568',
+  eat: '#0f766e',
+  focus: '#be123c',
+  chill: '#4338ca',
 };
 
 function getModeColor(mode: Mode, theme: 'dark' | 'light'): string {
@@ -282,6 +282,8 @@ export default function LiveMap({
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const prevModeRef = useRef<Mode>(selectedMode);
   const prevShowAllRef = useRef<boolean>(showAllMarkers);
+  const prevThemeRef = useRef<'dark' | 'light'>(theme);
+  const prevLocationsRef = useRef<Location[]>(locations);
   const transitionLockRef = useRef(false);
   const isAnimatingRef = useRef(false);
   const onLocationSelectRef = useRef(onLocationSelect);
@@ -302,7 +304,7 @@ export default function LiveMap({
     const tileLayer = L.tileLayer(
       theme === 'dark'
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
       { attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 20 }
     ).addTo(map);
 
@@ -339,7 +341,7 @@ export default function LiveMap({
     const tileUrl =
       theme === 'dark'
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
     tileLayerRef.current = L.tileLayer(tileUrl, {
       attribution: '© OpenStreetMap contributors © CARTO',
@@ -362,8 +364,12 @@ export default function LiveMap({
     const modeColor = getModeColor(selectedMode, theme);
     const isModeChange = prevModeRef.current !== selectedMode;
     const isAllMarkersChange = prevShowAllRef.current !== showAllMarkers;
+    const isThemeChange = prevThemeRef.current !== theme;
+    const isSameLocationsRef = prevLocationsRef.current === locations;
     prevModeRef.current = selectedMode;
     prevShowAllRef.current = showAllMarkers;
+    prevThemeRef.current = theme;
+    prevLocationsRef.current = locations;
 
     const needsTransition = (isModeChange || isAllMarkersChange) &&
       !transitionLockRef.current &&
@@ -420,7 +426,25 @@ export default function LiveMap({
       // Guard against this branch firing while a transition is in flight.
       if (isAnimatingRef.current) return;
 
-      // Always use a snappy stagger so markers never pop in.
+      // If this is *only* a selection change, do not recreate markers (avoids replaying enter animations).
+      const isSelectionOnlyChange = isSameLocationsRef && !isModeChange && !isAllMarkersChange && !isThemeChange;
+      if (isSelectionOnlyChange && Object.keys(markersRef.current).length > 0) {
+        locations.forEach((location) => {
+          const marker = markersRef.current[location.id];
+          if (!marker) return;
+          const isSelected = selectedLocation === location.id;
+          const markerColor = showAllMarkers && location.mode
+            ? getModeColor(location.mode, theme)
+            : modeColor;
+          marker.setIcon(
+            buildIcon(markerColor, isSelected, 0, false, theme, showAllMarkers, location.mode, location.name)
+          );
+        });
+        return;
+      }
+
+      // Rebuild markers for initial load / filter changes / theme changes, but animate only on first add.
+      const shouldAnimateEnter = Object.keys(markersRef.current).length === 0;
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
       addMarkersToMap(
@@ -432,7 +456,7 @@ export default function LiveMap({
         staggerTimersRef,
         hoverTimersRef,
         (...args: [string]) => onLocationSelectRef.current(...args),
-        true,
+        shouldAnimateEnter,
         theme,
         showAllMarkers,
         30

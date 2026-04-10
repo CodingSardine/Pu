@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 type Mode = 'eat' | 'focus' | 'chill';
+type Theme = 'dark' | 'light';
 
 interface ModeTransitionOverlayProps {
   isActive: boolean;
@@ -8,14 +9,26 @@ interface ModeTransitionOverlayProps {
   toMode: Mode;
   triggerX: number;
   triggerY: number;
+  theme: Theme;
   onComplete: () => void;
 }
 
 const MODE_COLORS = {
-  eat: '#14b8a6',
-  focus: '#f43f5e',
-  chill: '#6366f1',
+  eat: '#0ea5a6',
+  focus: '#fb7185',
+  chill: '#818cf8',
 };
+
+function blendHexWithWhite(hex: string, whiteMix: number) {
+  const mix = Math.min(1, Math.max(0, whiteMix));
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const rr = Math.round(r + (255 - r) * mix);
+  const gg = Math.round(g + (255 - g) * mix);
+  const bb = Math.round(b + (255 - b) * mix);
+  return `#${rr.toString(16).padStart(2, '0')}${gg.toString(16).padStart(2, '0')}${bb.toString(16).padStart(2, '0')}`;
+}
 
 export default function ModeTransitionOverlay({
   isActive,
@@ -23,11 +36,13 @@ export default function ModeTransitionOverlay({
   toMode,
   triggerX,
   triggerY,
+  theme,
   onComplete,
 }: ModeTransitionOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
+  const runIdRef = useRef(0);
 
   useEffect(() => {
     if (!isActive || !canvasRef.current) return;
@@ -36,12 +51,24 @@ export default function ModeTransitionOverlay({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // If we're re-triggered quickly (toMode/trigger changes while active),
+    // cancel any in-flight frame and restart timing deterministically.
+    runIdRef.current += 1;
+    const runId = runIdRef.current;
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    startTimeRef.current = 0;
+
     // Set canvas size to match window
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     const duration = 1000; // Increase duration for smoother feel
-    const toColor = MODE_COLORS[toMode];
+    const baseToColor = MODE_COLORS[toMode];
+    // On light backgrounds we want a brighter/pastel bloom (less muddy than multiplying saturated color).
+    const toColor = theme === 'light' ? blendHexWithWhite(baseToColor, 0.55) : baseToColor;
 
     // Calculate the maximum distance from trigger point to any corner
     // This ensures the circle always covers the entire screen
@@ -55,6 +82,7 @@ export default function ModeTransitionOverlay({
     const maxDistance = Math.max(...distances) * 1.5;
 
     const animate = (currentTime: number) => {
+      if (runIdRef.current !== runId) return; // stale animation (newer run started)
       if (startTimeRef.current === 0) {
         startTimeRef.current = currentTime;
       }
@@ -78,11 +106,12 @@ export default function ModeTransitionOverlay({
         currentRadius
       );
 
-      // Calculate opacity: start at 0.6 max opacity and fade out
-      let opacity = 0.6;
-      if (progress > 0.3) {
-        // Linear fade from 0.6 to 0 between 30% and 100% progress
-        opacity = 0.6 * (1 - (progress - 0.3) / 0.7);
+      // Light mode needs a stronger, more contrasty wash (screen blending on white can be too subtle).
+      const maxOpacity = theme === 'light' ? 0.55 : 0.6;
+      const fadeStart = theme === 'light' ? 0.18 : 0.3;
+      let opacity = maxOpacity;
+      if (progress > fadeStart) {
+        opacity = maxOpacity * (1 - (progress - fadeStart) / (1 - fadeStart));
       }
       
       // Convert hex to rgba for dynamic opacity
@@ -93,8 +122,9 @@ export default function ModeTransitionOverlay({
       const fadeColor = `rgba(${r}, ${g}, ${b}, 0)`;
 
       // Gradient stops: semi-opaque center, smooth fade to transparent at edge
+      // In light mode, keep the center a bit tighter so it reads as a "color bloom".
       gradient.addColorStop(0, baseColor);
-      gradient.addColorStop(0.5, baseColor);
+      gradient.addColorStop(theme === 'light' ? 0.22 : 0.5, baseColor);
       gradient.addColorStop(1, fadeColor);
 
       // Fill with gradient
@@ -105,7 +135,9 @@ export default function ModeTransitionOverlay({
         animationRef.current = requestAnimationFrame(animate);
       } else {
         // Animation complete
-        onComplete();
+        if (runIdRef.current === runId) {
+          onComplete();
+        }
         startTimeRef.current = 0;
       }
     };
@@ -123,12 +155,16 @@ export default function ModeTransitionOverlay({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      // Invalidate this run immediately so any in-flight callback no-ops.
+      runIdRef.current += 1;
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
       }
+      startTimeRef.current = 0;
       window.removeEventListener('resize', handleResize);
     };
-  }, [isActive, toMode, triggerX, triggerY, onComplete]);
+  }, [isActive, toMode, triggerX, triggerY, theme, onComplete]);
 
   if (!isActive) return null;
 
@@ -136,7 +172,10 @@ export default function ModeTransitionOverlay({
     <canvas
       ref={canvasRef}
       className="fixed inset-0 z-[1500] pointer-events-none"
-      style={{ mixBlendMode: 'screen' }}
+      style={{
+        mixBlendMode: theme === 'light' ? 'normal' : 'screen',
+        opacity: 1,
+      }}
     />
   );
 }

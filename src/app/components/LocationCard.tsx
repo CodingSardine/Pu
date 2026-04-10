@@ -41,15 +41,15 @@ const CARD_STYLES = `
 `;
 
 const MODE_COLORS = {
-  eat: '#14b8a6',
-  focus: '#f43f5e',
-  chill: '#6366f1',
+  eat: '#0ea5a6',
+  focus: '#fb7185',
+  chill: '#818cf8',
 } as const;
 
 const MODE_COLORS_LIGHT = {
-  eat: '#2a9d8f',
-  focus: '#9b2335',
-  chill: '#4a5568',
+  eat: '#0f766e',
+  focus: '#be123c',
+  chill: '#4338ca',
 } as const;
 
 function getModeColor(mode: 'eat' | 'focus' | 'chill', theme: 'dark' | 'light'): string {

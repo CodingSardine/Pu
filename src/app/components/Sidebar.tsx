@@ -21,15 +21,15 @@ interface SidebarProps {
 }
 
 const MODE_COLORS = {
-  eat: '#14b8a6',
-  focus: '#f43f5e',
-  chill: '#6366f1',
+  eat: '#0ea5a6',
+  focus: '#fb7185',
+  chill: '#818cf8',
 };
 
 const MODE_COLORS_LIGHT = {
-  eat: '#2a9d8f',
-  focus: '#9b2335',
-  chill: '#4a5568',
+  eat: '#0f766e',
+  focus: '#be123c',
+  chill: '#4338ca',
 };
 
 function getModeColor(mode: Mode, theme: Theme): string {
@@ -189,6 +189,7 @@ export default function Sidebar({
   const theme = useTheme();
   const [modeToast, setModeToast] = useState<{ mode: Mode; label: string; y: number; key: number } | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastKeyRef = useRef(0);
   const bgColor = theme === 'dark' ? 'bg-slate-900' : 'bg-white';
   const modeColor = getModeColor(selectedMode, theme);
   const modeButtonsRef = useRef<{ [key: string]: HTMLButtonElement | null }>({});
@@ -218,7 +219,8 @@ export default function Sidebar({
     const buttonCenter = rect.top + (rect.height / 2);
 
     // Set toast
-    setModeToast({ mode, label, y: buttonCenter, key: Date.now() });
+    toastKeyRef.current += 1;
+    setModeToast({ mode, label, y: buttonCenter, key: toastKeyRef.current });
 
     // Call mode change with event for transition trigger position
     onModeChange(mode, event);

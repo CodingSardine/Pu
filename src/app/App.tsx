@@ -387,6 +387,20 @@ export default function App() {
           placeData={placeData}
           onModeChange={setSelectedMode}
         />
+        {/* Map scrim: improves sidebar/status contrast vs tiles */}
+        <div
+          className="fixed top-0 h-screen pointer-events-none"
+          style={{
+            left: '4rem', // aligns with sidebar width (w-16)
+            // Keep this narrow so it doesn't wash out map markers near the edge.
+            width: '1.25rem',
+            zIndex: 950,
+            background:
+              theme === 'dark'
+                ? 'linear-gradient(to right, rgba(15,23,42,0.75), rgba(15,23,42,0.22), rgba(15,23,42,0))'
+                : 'linear-gradient(to right, rgba(255,255,255,0.78), rgba(255,255,255,0.28), rgba(255,255,255,0))',
+          }}
+        />
         <Sidebar
           selectedMode={selectedMode}
           showAllMarkers={showAllMarkers}
@@ -424,6 +438,7 @@ export default function App() {
           toMode={transitionTo}
           triggerX={transitionTrigger.x}
           triggerY={transitionTrigger.y}
+          theme={theme}
           onComplete={handleTransitionComplete}
         />
       </div>

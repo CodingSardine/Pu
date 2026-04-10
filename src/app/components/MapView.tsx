@@ -43,15 +43,15 @@ interface MapViewProps {
 }
 
 const MODE_COLORS = {
-  eat: { main: '#14b8a6', light: 'rgba(20, 184, 166, 0.15)' },
-  focus: { main: '#f43f5e', light: 'rgba(244, 63, 94, 0.15)' },
-  chill: { main: '#6366f1', light: 'rgba(99, 102, 241, 0.15)' },
+  eat: { main: '#0ea5a6', light: 'rgba(14, 165, 166, 0.15)' },
+  focus: { main: '#fb7185', light: 'rgba(251, 113, 133, 0.15)' },
+  chill: { main: '#818cf8', light: 'rgba(129, 140, 248, 0.15)' },
 } as const;
 
 const MODE_COLORS_LIGHT = {
-  eat: { main: '#2a9d8f', light: 'rgba(42, 157, 143, 0.15)' },
-  focus: { main: '#9b2335', light: 'rgba(155, 35, 53, 0.15)' },
-  chill: { main: '#4a5568', light: 'rgba(74, 85, 104, 0.15)' },
+  eat: { main: '#0f766e', light: 'rgba(15, 118, 110, 0.15)' },
+  focus: { main: '#be123c', light: 'rgba(190, 18, 60, 0.15)' },
+  chill: { main: '#4338ca', light: 'rgba(67, 56, 202, 0.15)' },
 } as const;
 
 function getModeColorData(mode: Mode, theme: 'dark' | 'light') {
@@ -430,6 +430,7 @@ export default function MapView({
 
   const colorData = getModeColorData(selectedMode, theme);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const prevSelectedLocationRef = useRef<string | null>(null);
 
   const handleZoomIn = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomIn(); };
   const handleZoomOut = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomOut(); };
@@ -453,6 +454,18 @@ export default function MapView({
       onLocationSelect(null);
     }
   }, [selectedLocation, isSelectedVisible, onLocationSelect]);
+
+  // When a card is closed (selection cleared), return focus to the last selected marker.
+  useEffect(() => {
+    const prevId = prevSelectedLocationRef.current;
+    if (prevId && !selectedLocation && mapInstanceRef.current) {
+      const loc = allLocationsFlat.find((l) => l.id === prevId);
+      if (loc) {
+        mapInstanceRef.current.panTo([loc.lat, loc.lng], { animate: true, duration: 0.4 });
+      }
+    }
+    prevSelectedLocationRef.current = selectedLocation;
+  }, [selectedLocation, allLocationsFlat]);
 
   // When a marker is clicked, just select it (don't switch modes in all-markers view)
   const handleLocationSelect = (id: string | null) => {
