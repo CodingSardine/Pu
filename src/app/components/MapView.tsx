@@ -1,4 +1,4 @@
-import { useMemo, memo, useRef, useCallback, useState } from 'react';
+import React, { useMemo, memo, useRef, useCallback, useState } from 'react';
 import { Search, SlidersHorizontal, X, Plus, Minus, Home, UtensilsCrossed, Focus, Coffee } from 'lucide-react';
 import LocationCard, { type PlaceApiData } from './LocationCard';
 import LiveMap from './LiveMap';
@@ -263,6 +263,16 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
           )}
         </div>
       </div>
+      <style>{`
+        @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes overlayOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes panelIn { from { opacity: 0; transform: translateY(-12px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes panelOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-10px) scale(0.99); } }
+        .animate-overlay-in { animation: overlayIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .animate-overlay-out { animation: overlayOut 220ms cubic-bezier(0.4, 0, 1, 1) both; }
+        .animate-panel-in { animation: panelIn 320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .animate-panel-out { animation: panelOut 220ms cubic-bezier(0.4, 0, 1, 1) both; }
+      `}</style>
     </>
   );
 });
