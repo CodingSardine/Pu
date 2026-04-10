@@ -86,11 +86,12 @@ function buildIcon(
     : '';
 
   const html = `
-    <div style="
+    <div class="marker-anim" style="
       position: relative;
       width: ${size}px;
       height: ${pinHeight}px;
       cursor: pointer;
+      transform-origin: 50% 100%;
       ${animate ? `animation: markerDrop 0.38s cubic-bezier(0.2, 0.9, 0.2, 1) ${enterDelay}ms both;` : ''}
     " title="${markerTitle || 'Location'}">
       ${isSelected ? `
@@ -467,11 +468,15 @@ export default function LiveMap({
       Object.values(markersRef.current).forEach((marker) => {
         const el = marker.getElement() as HTMLElement | null;
         if (!el) return;
+        // Leaflet positions the marker element via CSS transform. Never animate that element’s
+        // transform, otherwise it can fight Leaflet and cause flicker/disappearing markers.
+        const animEl = el.querySelector('.marker-anim') as HTMLElement | null;
+        if (!animEl) return;
         // Restart animation reliably.
-        el.style.animation = 'none';
+        animEl.style.animation = 'none';
         // Force reflow.
-        void el.offsetHeight;
-        el.style.animation = 'markerModeBounce 420ms cubic-bezier(0.2, 0.9, 0.2, 1) both';
+        void animEl.offsetHeight;
+        animEl.style.animation = 'markerModeBounce 420ms cubic-bezier(0.2, 0.9, 0.2, 1) both';
       });
     }
 
