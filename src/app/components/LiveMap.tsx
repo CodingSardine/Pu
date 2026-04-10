@@ -426,12 +426,27 @@ export default function LiveMap({
     existingIds.forEach((id) => {
       if (!desiredIdSet.has(id)) {
         const m = markersRef.current[id];
-        if (m) m.remove();
+        if (m) {
+          const el = m.getElement() as HTMLElement | null;
+          const animEl = el?.querySelector?.('.marker-anim') as HTMLElement | null;
+          if (animEl) {
+            animEl.style.animation = 'markerExit 180ms ease both';
+            const t = setTimeout(() => {
+              m.remove();
+            }, 185);
+            staggerTimersRef.current.push(t);
+          } else {
+            m.remove();
+          }
+        }
         delete markersRef.current[id];
       }
     });
 
     const shouldAnimateFirstEver = !hasEverRenderedMarkersRef.current && tilesReady && desired.length > 0;
+    const shouldAnimateSwitch = hasEverRenderedMarkersRef.current && tilesReady && (isModeChange || isAllMarkersChange);
+    const toAdd: Location[] = [];
+
     desired.forEach((location) => {
       const existing = markersRef.current[location.id];
       const isSelected = selectedLocation === location.id;
@@ -445,22 +460,29 @@ export default function LiveMap({
           buildIcon(markerColor, isSelected, 0, false, theme, showAllMarkers, location.mode, location.name)
         );
       } else {
-        addMarkersToMap(
-          map,
-          [location],
-          selectedLocation,
-          modeColor,
-          markersRef,
-          staggerTimersRef,
-          hoverTimersRef,
-          (...args: [string]) => onLocationSelectRef.current(...args),
-          shouldAnimateFirstEver,
-          theme,
-          showAllMarkers,
-          shouldAnimateFirstEver ? 24 : 0
-        );
+        toAdd.push(location);
       }
     });
+
+    if (toAdd.length > 0) {
+      const shouldAnimateEnter = shouldAnimateFirstEver || shouldAnimateSwitch;
+      // Slightly faster stagger on mode switch than first-ever load.
+      const step = shouldAnimateFirstEver ? 24 : shouldAnimateSwitch ? 18 : 0;
+      addMarkersToMap(
+        map,
+        toAdd,
+        selectedLocation,
+        modeColor,
+        markersRef,
+        staggerTimersRef,
+        hoverTimersRef,
+        (...args: [string]) => onLocationSelectRef.current(...args),
+        shouldAnimateEnter,
+        theme,
+        showAllMarkers,
+        step
+      );
+    }
 
     // Bring back the "transition bounce" feel safely (no remove/re-add, no coord swapping).
     // Only run after initial marker render, and only for mode/all-markers switches.
@@ -519,6 +541,10 @@ export default function LiveMap({
           30% { transform: translateY(-10px) scale(1.06); }
           60% { transform: translateY(2px) scale(0.99); }
           100% { transform: translateY(0) scale(1); }
+        }
+        @keyframes markerExit {
+          0% { opacity: 1; transform: translateY(0) scale(1); }
+          100% { opacity: 0; transform: translateY(10px) scale(0.92); }
         }
         .custom-marker {
           background: transparent !important;

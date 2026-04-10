@@ -35,3 +35,4 @@ pnpm-debug.log*
 # Testing
 coverage
 .nyc_output
+scripts/fetch-place-ids.mjs
