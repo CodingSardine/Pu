@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import ModeTransitionOverlay from './components/ModeTransitionOverlay';
@@ -121,38 +121,61 @@ const LOCATION_NAMES: Record<string, string> = {
 // Module-level cache for place data to avoid re-fetching on mode switches
 const placeDataCache = new Map<string, PlaceApiData>();
 
-async function fetchInBatches<T>(
-  items: T[],
-  batchSize: number,
-  delayMs: number,
-  fn: (item: T) => Promise<any>
+const PLACES_FETCH_TIMEOUT_MS = 12000;
+const PHOTO_FETCH_TIMEOUT_MS = 10000;
+
+async function fetchWithTimeout(
+  input: Parameters<typeof fetch>[0],
+  init: Parameters<typeof fetch>[1],
+  timeoutMs: number,
+  externalSignal?: AbortSignal
 ) {
-  const results = [];
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    const batchResults = await Promise.allSettled(batch.map(fn));
-    results.push(...batchResults);
-    if (i + batchSize < items.length) {
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  const onAbort = () => {
+    controller.abort();
+  };
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort();
+    } else {
+      externalSignal.addEventListener('abort', onAbort, { once: true });
     }
   }
-  return results;
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', onAbort);
+    }
+  }
 }
 
-async function fetchPlaceByName(locationName: string): Promise<PlaceApiData> {
-  const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
-      'X-Goog-FieldMask':
-        'places.id,places.photos.name,places.rating,places.userRatingCount,places.formattedAddress,places.regularOpeningHours',
+async function fetchPlaceByName(locationName: string, signal?: AbortSignal): Promise<PlaceApiData> {
+  const res = await fetchWithTimeout(
+    'https://places.googleapis.com/v1/places:searchText',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+        'X-Goog-FieldMask':
+          'places.id,places.photos.name,places.rating,places.userRatingCount,places.formattedAddress,places.regularOpeningHours',
+      },
+      body: JSON.stringify({
+        textQuery: `${locationName} Nicosia Cyprus`,
+        maxResultCount: 1,
+      }),
     },
-    body: JSON.stringify({
-      textQuery: `${locationName} Nicosia Cyprus`,
-      maxResultCount: 1,
-    }),
-  });
+    PLACES_FETCH_TIMEOUT_MS,
+    signal
+  );
 
   if (!res.ok) throw new Error(`Places API ${res.status}`);
   const data = await res.json();
@@ -217,30 +240,29 @@ export default function App() {
   // Updates state incrementally as each batch completes.
   useEffect(() => {
     let isMounted = true;
+    const effectAbortController = new AbortController();
+
     const fetchAll = async () => {
       const locationEntries = Object.entries(LOCATION_NAMES);
       const createdBlobUrls: string[] = [];
+      const sourceToBlobUrl = new Map<string, string>();
 
-      // Fetch all locations in batches of 5 with 300ms delays
-      const results = await fetchInBatches(
-        locationEntries,
-        5,
-        300,
-        async ([id, locationName]) => {
-          // Check cache first
-          if (placeDataCache.has(id)) {
-            return { id, data: placeDataCache.get(id)! };
-          }
-          const data = await fetchPlaceByName(locationName);
-          return { id, data };
-        }
-      );
+      // Fetch and process locations in batches of 5 with 300ms delays.
+      // Each batch updates placeData immediately after it resolves.
+      for (let i = 0; i < locationEntries.length; i += 5) {
+        if (!isMounted || effectAbortController.signal.aborted) break;
 
-      // Process results in batches and update state incrementally
-      for (let i = 0; i < results.length; i += 5) {
-        if (!isMounted) break;
-
-        const batchResults = results.slice(i, i + 5);
+        const batchEntries = locationEntries.slice(i, i + 5);
+        const batchResults = await Promise.allSettled(
+          batchEntries.map(async ([id, locationName]) => {
+            if (placeDataCache.has(id)) {
+              return { id, data: placeDataCache.get(id)! };
+            }
+            const data = await fetchPlaceByName(locationName, effectAbortController.signal);
+            placeDataCache.set(id, data);
+            return { id, data };
+          })
+        );
         const batchMerged: Record<string, PlaceApiData> = {};
 
         await Promise.all(
@@ -253,13 +275,28 @@ export default function App() {
               if (sourcePhotoUrls.length > 0) {
                 try {
                   blobUrls = await Promise.all(
-                    sourcePhotoUrls.map(async (url) => {
-                      const res = await fetch(url);
+                    sourcePhotoUrls.map(async (url: string) => {
+                      const cachedBlobUrl = sourceToBlobUrl.get(url);
+                      if (cachedBlobUrl) {
+                        return cachedBlobUrl;
+                      }
+
+                      const res = await fetchWithTimeout(
+                        url,
+                        undefined,
+                        PHOTO_FETCH_TIMEOUT_MS,
+                        effectAbortController.signal
+                      );
+                      if (!res.ok) {
+                        throw new Error(`Photo fetch failed: ${res.status}`);
+                      }
                       const blob = await res.blob();
-                      return URL.createObjectURL(blob);
+                      const blobUrl = URL.createObjectURL(blob);
+                      sourceToBlobUrl.set(url, blobUrl);
+                      createdBlobUrls.push(blobUrl);
+                      return blobUrl;
                     })
                   );
-                  createdBlobUrls.push(...blobUrls);
                 } catch {
                   // Ignore photo failures; card will render without images.
                 }
@@ -271,7 +308,6 @@ export default function App() {
               };
 
               batchMerged[id] = finalPlaceData;
-              placeDataCache.set(id, finalPlaceData);
             }
           })
         );
@@ -280,6 +316,10 @@ export default function App() {
         if (isMounted && Object.keys(batchMerged).length > 0) {
           setPlaceData((prev) => ({ ...prev, ...batchMerged }));
         }
+
+        if (i + 5 < locationEntries.length) {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        }
       }
 
       if (!isMounted) {
@@ -287,6 +327,7 @@ export default function App() {
         return;
       }
 
+      photoBlobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
       photoBlobUrlsRef.current = createdBlobUrls;
     };
 
@@ -294,6 +335,7 @@ export default function App() {
 
     return () => {
       isMounted = false;
+      effectAbortController.abort();
     };
   }, []);
 
@@ -314,6 +356,10 @@ export default function App() {
       setSelectedLocation(null);
     }
   };
+
+  const handleTransitionComplete = useCallback(() => {
+    setTransitionActive(false);
+  }, []);
 
   return (
     <ThemeContext.Provider value={theme}>
@@ -378,7 +424,7 @@ export default function App() {
           toMode={transitionTo}
           triggerX={transitionTrigger.x}
           triggerY={transitionTrigger.y}
-          onComplete={() => setTransitionActive(false)}
+          onComplete={handleTransitionComplete}
         />
       </div>
     </ThemeContext.Provider>

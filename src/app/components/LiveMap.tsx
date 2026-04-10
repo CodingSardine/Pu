@@ -39,6 +39,11 @@ function getModeColor(mode: Mode, theme: 'dark' | 'light'): string {
   return theme === 'light' ? MODE_COLORS_LIGHT[mode] : MODE_COLORS[mode];
 }
 
+function clearTimeoutList(timers: ReturnType<typeof setTimeout>[]) {
+  timers.forEach((timer) => clearTimeout(timer));
+  timers.length = 0;
+}
+
 // Delete default icon to prevent Leaflet from trying to load marker images
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -134,6 +139,8 @@ function addMarkersToMap(
   selectedLocation: string | null,
   defaultModeColor: string,
   markersRef: React.MutableRefObject<{ [key: string]: L.Marker }>,
+  staggerTimersRef: React.MutableRefObject<ReturnType<typeof setTimeout>[]>,
+  hoverTimersRef: React.MutableRefObject<ReturnType<typeof setTimeout>[]>,
   onLocationSelect: (id: string) => void,
   stagger: boolean,
   theme: 'dark' | 'light' = 'dark',
@@ -168,11 +175,12 @@ function addMarkersToMap(
 
     // If staggered animation, fade in after delay
     if (stagger) {
-      setTimeout(() => {
+      const staggerTimer = setTimeout(() => {
         if (marker && map.hasLayer(marker)) {
           marker.setOpacity(1);
         }
       }, delay);
+      staggerTimersRef.current.push(staggerTimer);
     }
 
     marker
@@ -198,9 +206,9 @@ function addMarkersToMap(
       .on('mouseover', (e) => {
         const marker = e.target;
         const el = marker.getElement();
-        if (el) {
+        if (el && el.isConnected) {
           // Create or show the hover pill
-          let pill = el.querySelector('.marker-hover-pill');
+          let pill = el.querySelector('.marker-hover-pill') as HTMLElement | null;
           if (!pill) {
             pill = document.createElement('div');
             pill.className = 'marker-hover-pill';
@@ -228,21 +236,28 @@ function addMarkersToMap(
             el.appendChild(pill);
           }
           // Trigger animation
-          setTimeout(() => {
-            (pill as HTMLElement).style.opacity = '1';
-            (pill as HTMLElement).style.transform = 'translateX(-50%) translateY(-12px)';
+          const hoverInTimer = setTimeout(() => {
+            if (!el.isConnected || !pill || !pill.isConnected) return;
+            pill.style.opacity = '1';
+            pill.style.transform = 'translateX(-50%) translateY(-12px)';
           }, 10);
+          hoverTimersRef.current.push(hoverInTimer);
         }
       })
       .on('mouseout', (e) => {
         const el = e.target.getElement();
-        if (el) {
+        if (el && el.isConnected) {
           const pill = el.querySelector('.marker-hover-pill') as HTMLElement;
           if (pill) {
             pill.style.opacity = '0';
             pill.style.transform = 'translateX(-50%) translateY(-8px)';
             // Remove after transition
-            setTimeout(() => pill.remove(), 200);
+            const hoverOutTimer = setTimeout(() => {
+              if (pill.isConnected) {
+                pill.remove();
+              }
+            }, 200);
+            hoverTimersRef.current.push(hoverOutTimer);
           }
         }
       });
@@ -270,6 +285,9 @@ export default function LiveMap({
   const transitionLockRef = useRef(false);
   const isAnimatingRef = useRef(false);
   const onLocationSelectRef = useRef(onLocationSelect);
+  const staggerTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const hoverTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const invalidateSizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -291,11 +309,22 @@ export default function LiveMap({
     tileLayerRef.current = tileLayer;
     mapRef.current = map;
 
-    setTimeout(() => map.invalidateSize(), 100);
+    invalidateSizeTimerRef.current = setTimeout(() => {
+      if (mapRef.current === map) {
+        map.invalidateSize();
+      }
+      invalidateSizeTimerRef.current = null;
+    }, 100);
 
     if (onMapReady) onMapReady(map);
 
     return () => {
+      if (invalidateSizeTimerRef.current) {
+        clearTimeout(invalidateSizeTimerRef.current);
+        invalidateSizeTimerRef.current = null;
+      }
+      clearTimeoutList(staggerTimersRef.current);
+      clearTimeoutList(hoverTimersRef.current);
       map.remove();
       mapRef.current = null;
       tileLayerRef.current = null;
@@ -328,6 +357,8 @@ export default function LiveMap({
     if (!mapRef.current) return;
 
     const map = mapRef.current;
+    clearTimeoutList(staggerTimersRef.current);
+    clearTimeoutList(hoverTimersRef.current);
     const modeColor = getModeColor(selectedMode, theme);
     const isModeChange = prevModeRef.current !== selectedMode;
     const isAllMarkersChange = prevShowAllRef.current !== showAllMarkers;
@@ -362,12 +393,28 @@ export default function LiveMap({
       // 4. After exit animation, add new markers with staggered drop
       const exitDuration = 220;
       const timer = setTimeout(() => {
-        addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, (...args: [string]) => onLocationSelectRef.current(...args), true, theme, showAllMarkers);
+        addMarkersToMap(
+          map,
+          locations,
+          selectedLocation,
+          modeColor,
+          markersRef,
+          staggerTimersRef,
+          hoverTimersRef,
+          (...args: [string]) => onLocationSelectRef.current(...args),
+          true,
+          theme,
+          showAllMarkers
+        );
         transitionLockRef.current = false;
         isAnimatingRef.current = false;
       }, exitDuration);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        clearTimeoutList(staggerTimersRef.current);
+        clearTimeoutList(hoverTimersRef.current);
+      };
     } else {
       // Selection change, initial load, filter updates, or non-transition mode/all-state changes.
       // Guard against this branch firing while a transition is in flight.
@@ -376,7 +423,20 @@ export default function LiveMap({
       // Always use a snappy stagger so markers never pop in.
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
-      addMarkersToMap(map, locations, selectedLocation, modeColor, markersRef, (...args: [string]) => onLocationSelectRef.current(...args), true, theme, showAllMarkers, 30);
+      addMarkersToMap(
+        map,
+        locations,
+        selectedLocation,
+        modeColor,
+        markersRef,
+        staggerTimersRef,
+        hoverTimersRef,
+        (...args: [string]) => onLocationSelectRef.current(...args),
+        true,
+        theme,
+        showAllMarkers,
+        30
+      );
     }
   }, [locations, selectedLocation, selectedMode, showAllMarkers, theme]);
 

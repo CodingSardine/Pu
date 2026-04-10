@@ -1,4 +1,4 @@
-import { useMemo, memo, useRef } from 'react';
+import { useMemo, memo, useRef, useCallback } from 'react';
 import { Search, SlidersHorizontal, X, Plus, Minus, Home, UtensilsCrossed, Focus, Coffee } from 'lucide-react';
 import LocationCard, { type PlaceApiData } from './LocationCard';
 import LiveMap from './LiveMap';
@@ -448,10 +448,24 @@ export default function MapView({
   const selectedLocationMode = selectedLocationData?.mode ?? selectedMode;
   const isSelectedVisible = filteredLocations.some((l) => l.id === selectedLocation);
 
+  useEffect(() => {
+    if (selectedLocation && !isSelectedVisible) {
+      onLocationSelect(null);
+    }
+  }, [selectedLocation, isSelectedVisible, onLocationSelect]);
+
   // When a marker is clicked, just select it (don't switch modes in all-markers view)
   const handleLocationSelect = (id: string | null) => {
     onLocationSelect(id);
   };
+
+  const handleSearchPanelClose = useCallback(() => {
+    onSearchExpandedChange(false);
+  }, [onSearchExpandedChange]);
+
+  const handleFiltersPanelClose = useCallback(() => {
+    onFiltersExpandedChange(false);
+  }, [onFiltersExpandedChange]);
 
   return (
     <div className={`absolute inset-0 left-16 transition-colors duration-300 ${bgColor}`}>
@@ -510,7 +524,7 @@ export default function MapView({
         <FloatingSearchBar
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
-          onClose={() => onSearchExpandedChange(false)}
+          onClose={handleSearchPanelClose}
           modeColor={colorData.main}
         />
       )}
@@ -518,7 +532,7 @@ export default function MapView({
         <FloatingFiltersPanel
           activeFilters={activeFilters}
           onFiltersChange={onFiltersChange}
-          onClose={() => onFiltersExpandedChange(false)}
+          onClose={handleFiltersPanelClose}
           modeColor={colorData.main}
         />
       )}
