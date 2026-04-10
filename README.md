@@ -17,8 +17,8 @@
 
 - **Interactive Map Interface**
   - Live Leaflet map with custom animated markers
-  - Theme-reactive map tiles (Stadia Maps)
-  - Staggered marker drop animations on mode switch
+  - Theme-reactive map tiles (CARTO basemaps)
+  - Smooth marker transitions (exit fade + staggered enter) on mode switch
   - Smart map panning when selecting locations
   - Custom zoom controls
 
@@ -29,7 +29,7 @@
   - Live filtering — markers update instantly
 
 - **Location Details**
-  - 21 curated locations across Nicosia (7 per mode)
+  - 81 curated locations across Nicosia (27 per mode)
   - Google Places API integration for live photos, ratings, and hours
   - Detailed location cards with atmosphere, seating, and price info
   - Direct Google Maps navigation links
@@ -55,9 +55,9 @@
   - `z-[1002]` — Search/Filter panels
   - `z-[1003]` — Mode toast notifications
 - **Animation System**
-  - Staggered marker entrance (80ms delay per marker)
+  - Staggered marker entrance on mode switch
   - Bouncy drop animation with cubic-bezier easing
-  - Pop-out exit animation on mode change
+  - Fast exit animation for markers leaving the filtered set
   - Smooth fade-in for location cards
 
 ## 🚀 Tech Stack
@@ -92,11 +92,11 @@ pnpm dev
 
 ### Google Places API Setup
 
-To enable live location data (photos, ratings, hours), replace the placeholder API key in `/src/app/App.tsx`:
+To enable live location data (photos, ratings, hours), set an environment variable:
 
-```typescript
-const GOOGLE_PLACES_API_KEY = 'YOUR_GOOGLE_PLACES_API_KEY';
-```
+- **`VITE_GOOGLE_PLACES_API_KEY`**: your Google Places API key
+
+You can copy `.env.example` to `.env` and fill it in locally.
 
 **Required API:**
 - [Google Places API (New)](https://developers.google.com/maps/documentation/places/web-service/place-id)
@@ -110,11 +110,11 @@ Without a valid key, the app gracefully falls back to hardcoded values.
 
 ### Map Tiles
 
-The app uses **Stadia Maps** with theme-reactive URLs:
-- **Dark Mode:** `alidade_smooth_dark`
-- **Light Mode:** `alidade_smooth`
+The app uses **CARTO** basemaps with theme-reactive URLs:
+- **Dark Mode:** `dark_all`
+- **Light Mode:** `rastertiles/voyager`
 
-No API key required for development (subject to Stadia's terms).
+No API key is required (subject to CARTO/OpenStreetMap terms).
 
 ## 📂 Project Structure
 
@@ -145,14 +145,8 @@ Pu/
 
 ## 🎨 Key Architectural Decisions
 
-### Mobile/Responsive Logic Removed
-All mobile breakpoints and responsive logic have been **completely removed** from:
-- `Sidebar.tsx` — No hamburger menu or compact views
-- `MapView.tsx` — No mobile-specific panels
-- `App.tsx` — No responsive state logic
-- `index.css` — Desktop-only utilities
-
-**Rationale:** Desktop-first design with focus on 1024px+ screens.
+### Responsive layout
+The UI is desktop-first, but the app still includes a small-screen experience (e.g. bottom controls and different card placement on mobile).
 
 ### Panel Management
 - Search and filter panels are **mutually exclusive**
@@ -162,46 +156,20 @@ All mobile breakpoints and responsive logic have been **completely removed** fro
 
 ### Marker Animation Gating
 The `buildIcon` function in `LiveMap.tsx` uses an `animate` flag:
-- `true` — Staggered drop animation (mode switch)
-- `false` — Instant render (selection change, initial load)
+- `true` — Staggered drop animation (initial marker render and mode/all-markers switches)
+- `false` — Instant render (selection changes and routine updates)
 
 This prevents animation conflicts during rapid interactions.
 
-### selectedLocation Clearing
+### selectedLocation clearing
 `selectedLocation` is reset to `null` in `App.tsx` whenever the mode changes, ensuring a clean slate for each mode.
 
 ## 📍 Locations
 
-### Eat Mode (7 locations)
-- Avo Armenian Food
-- Piatsa Gourounaki
-- Zanettos Tavern
-- To Anamma
-- Elysian Fusion Kitchen
-- Falafel Abu Dany
-- Bella Vita
-
-### Focus Mode (7 locations)
-- Yfantourgeio (Coworking)
-- Brew Lab
-- The Workshop Cafe
-- Think 30
-- A Kxofee Project
-- The Hub Nicosia
-- Pieto Coffee
-
-### Chill Mode (7 locations)
-- K11 (Artsy Bar)
-- Bálza Rooftop Bar
-- Halara Cafe
-- Nicosia Municipal Gardens
-- SkyView Rooftop Bar
-- Famagusta Gate Area
-- Katakwa Culture Cafe
+There are **81 total locations** (27 per mode) defined in `src/app/components/MapView.tsx`.
 
 All locations include:
 - Coordinates (lat/lng)
-- Google Places ID
 - Feature tags (wifi, power, outdoor, pet-friendly, budget, premium)
 - Hardcoded metadata (cuisine, price, atmosphere, seating)
 
@@ -218,7 +186,7 @@ pnpm build
 
 **Deployment:**
 - Static site hosting (Vercel, Netlify, Cloudflare Pages)
-- Base path configured for subdirectory deployment: `base: './'`
+- Base path configured for GitHub Pages-style deployment: `base: '/Pu/'` (see `vite.config.ts`)
 
 ## 📝 License
 
