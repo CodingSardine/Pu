@@ -272,6 +272,10 @@ function addMarkersToMap(
   });
 }
 
+function hasValidLatLng(location: Location) {
+  return Number.isFinite(location.lat) && Number.isFinite(location.lng);
+}
+
 export default function LiveMap({
   selectedMode,
   showAllMarkers,
@@ -291,6 +295,7 @@ export default function LiveMap({
   const prevThemeRef = useRef<'dark' | 'light'>(theme);
   const prevLocationsRef = useRef<Location[]>(locations);
   const prevLocationIdsRef = useRef<string>('');
+  const hasEverRenderedMarkersRef = useRef(false);
   const transitionLockRef = useRef(false);
   const isAnimatingRef = useRef(false);
   const tileLayerMountedRef = useRef(false);
@@ -461,52 +466,57 @@ export default function LiveMap({
       // Guard against this branch firing while a transition is in flight.
       if (isAnimatingRef.current) return;
 
-      // If ids haven't changed, update incrementally (no remove/re-add).
-      const canIncrementallyUpdate = sameIds && !isModeChange && !isAllMarkersChange && !isThemeChange;
-      if (canIncrementallyUpdate && Object.keys(markersRef.current).length > 0) {
-        let missingMarker = false;
+      // Bullet-proof marker reconciliation:
+      // - never wipe/re-add on normal updates
+      // - add markers when coords become available (no enter animation)
+      // - remove markers when filtered out
+      const desired = locations.filter(hasValidLatLng);
+      const desiredIdSet = new Set(desired.map((l) => l.id));
+      const existingIds = Object.keys(markersRef.current);
 
-        locations.forEach((location) => {
-          const marker = markersRef.current[location.id];
-          if (!marker) {
-            missingMarker = true;
-            return;
-          }
+      // remove markers no longer desired
+      existingIds.forEach((id) => {
+        if (!desiredIdSet.has(id)) {
+          const m = markersRef.current[id];
+          if (m) m.remove();
+          delete markersRef.current[id];
+        }
+      });
 
-          marker.setLatLng([location.lat, location.lng]);
+      // update existing + add missing
+      const shouldAnimateFirstEver = !hasEverRenderedMarkersRef.current && desired.length > 0;
+      desired.forEach((location) => {
+        const existing = markersRef.current[location.id];
+        const isSelected = selectedLocation === location.id;
+        const markerColor = showAllMarkers && location.mode
+          ? getModeColor(location.mode, theme)
+          : modeColor;
 
-          const isSelected = selectedLocation === location.id;
-          const markerColor = showAllMarkers && location.mode
-            ? getModeColor(location.mode, theme)
-            : modeColor;
-
-          marker.setIcon(
+        if (existing) {
+          existing.setLatLng([location.lat, location.lng]);
+          existing.setIcon(
             buildIcon(markerColor, isSelected, 0, false, theme, showAllMarkers, location.mode, location.name)
           );
-        });
+        } else {
+          // add new marker
+          addMarkersToMap(
+            map,
+            [location],
+            selectedLocation,
+            modeColor,
+            markersRef,
+            staggerTimersRef,
+            hoverTimersRef,
+            (...args: [string]) => onLocationSelectRef.current(...args),
+            shouldAnimateFirstEver,
+            theme,
+            showAllMarkers,
+            shouldAnimateFirstEver ? 30 : 0
+          );
+        }
+      });
 
-        if (!missingMarker) return;
-        // fallthrough to full rebuild if something got out of sync
-      }
-
-      // Rebuild markers for initial load / filter changes / theme changes, but animate only on first add.
-      const shouldAnimateEnter = Object.keys(markersRef.current).length === 0;
-      Object.values(markersRef.current).forEach((m) => m.remove());
-      markersRef.current = {};
-      addMarkersToMap(
-        map,
-        locations,
-        selectedLocation,
-        modeColor,
-        markersRef,
-        staggerTimersRef,
-        hoverTimersRef,
-        (...args: [string]) => onLocationSelectRef.current(...args),
-        shouldAnimateEnter,
-        theme,
-        showAllMarkers,
-        30
-      );
+      if (desired.length > 0) hasEverRenderedMarkersRef.current = true;
     }
   }, [locations, selectedLocation, selectedMode, showAllMarkers, theme]);
 

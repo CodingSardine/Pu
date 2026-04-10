@@ -501,14 +501,12 @@ export default function MapView({
         <LiveMap
           selectedMode={selectedMode}
           showAllMarkers={showAllMarkers}
-          locations={filteredLocations
-            .map((l) => {
-              const pd = placeData[l.id] ?? null;
-              const lat = pd?.lat ?? l.lat;
-              const lng = pd?.lng ?? l.lng;
-              return { ...l, lat, lng };
-            })
-            .filter((l) => Number.isFinite(l.lat) && Number.isFinite(l.lng))}
+          locations={filteredLocations.map((l) => {
+            const pd = placeData[l.id] ?? null;
+            const lat = pd?.lat ?? l.lat;
+            const lng = pd?.lng ?? l.lng;
+            return { ...l, lat, lng };
+          })}
           selectedLocation={selectedLocation}
           onLocationSelect={handleLocationSelect}
           onMapReady={(map) => { mapInstanceRef.current = map; }}
