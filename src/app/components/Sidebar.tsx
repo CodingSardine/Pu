@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import React from 'react';
 import { Search, Sun, Moon, SlidersHorizontal, UtensilsCrossed, Focus, Coffee } from 'lucide-react';
 import svgPaths from '../../imports/svg-btvw69dr9p';
@@ -190,6 +190,13 @@ export default function Sidebar({
   const [modeToast, setModeToast] = useState<{ mode: Mode; label: string; y: number; key: number } | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastKeyRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
   const bgColor = theme === 'dark' ? 'bg-slate-900' : 'bg-white';
   const modeColor = getModeColor(selectedMode, theme);
   const modeButtonsRef = useRef<{ [key: string]: HTMLButtonElement | null }>({});

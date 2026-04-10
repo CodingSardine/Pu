@@ -293,6 +293,7 @@ export default function LiveMap({
   const prevLocationsRef = useRef<Location[]>(locations);
   const transitionLockRef = useRef(false);
   const isAnimatingRef = useRef(false);
+  const tileLayerMountedRef = useRef(false);
   const onLocationSelectRef = useRef(onLocationSelect);
   const staggerTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const hoverTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -325,6 +326,12 @@ export default function LiveMap({
     tileLayerRef.current = tileLayer;
     mapRef.current = map;
 
+    // Make dark tiles slightly greyer for UI contrast.
+    const tileEl = tileLayer.getContainer();
+    if (tileEl) {
+      tileEl.style.filter = theme === 'dark' ? 'brightness(1.15) contrast(0.92) saturate(0.85)' : '';
+    }
+
     invalidateSizeTimerRef.current = setTimeout(() => {
       if (mapRef.current === map) {
         map.invalidateSize();
@@ -333,6 +340,7 @@ export default function LiveMap({
     }, 100);
 
     if (onMapReady) onMapReady(map);
+    tileLayerMountedRef.current = true;
 
     return () => {
       if (invalidateSizeTimerRef.current) {
@@ -344,12 +352,13 @@ export default function LiveMap({
       map.remove();
       mapRef.current = null;
       tileLayerRef.current = null;
+      tileLayerMountedRef.current = false;
     };
   }, []);
 
   // Update tile layer on theme change
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !tileLayerMountedRef.current) return;
     if (tileLayerRef.current) tileLayerRef.current.remove();
 
     const tileUrl =
@@ -364,6 +373,11 @@ export default function LiveMap({
       updateWhenZooming: false,
       keepBuffer: 2,
     }).addTo(mapRef.current);
+
+    const tileEl = tileLayerRef.current.getContainer();
+    if (tileEl) {
+      tileEl.style.filter = theme === 'dark' ? 'brightness(1.15) contrast(0.92) saturate(0.85)' : '';
+    }
   }, [theme]);
 
   // Sync onLocationSelect ref to avoid dependency array churn
@@ -437,6 +451,8 @@ export default function LiveMap({
         clearTimeout(timer);
         clearTimeoutList(staggerTimersRef.current);
         clearTimeoutList(hoverTimersRef.current);
+        transitionLockRef.current = false;
+        isAnimatingRef.current = false;
       };
     } else {
       // Selection change, initial load, filter updates, or non-transition mode/all-state changes.
