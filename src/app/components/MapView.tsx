@@ -1,4 +1,4 @@
-import { useMemo, memo, useRef, useCallback } from 'react';
+import { useMemo, memo, useRef, useCallback, useState } from 'react';
 import { Search, SlidersHorizontal, X, Plus, Minus, Home, UtensilsCrossed, Focus, Coffee } from 'lucide-react';
 import LocationCard, { type PlaceApiData } from './LocationCard';
 import LiveMap from './LiveMap';
@@ -61,8 +61,13 @@ function getModeColorData(mode: Mode, theme: 'dark' | 'light') {
 const FILTER_OPTIONS = [
   { id: 'wifi', label: 'WiFi' },
   { id: 'power', label: 'Power Outlets' },
+  { id: 'laptop-friendly', label: 'Laptop Friendly' },
   { id: 'outdoor', label: 'Outdoor Seating' },
+  { id: 'indoor', label: 'Indoor Seating' },
+  { id: 'rooftop', label: 'Rooftop' },
   { id: 'pet-friendly', label: 'Pet Friendly' },
+  { id: 'quiet', label: 'Quiet' },
+  { id: 'lively', label: 'Lively' },
   { id: 'budget', label: '€' },
   { id: 'premium', label: '€€€' },
 ];
@@ -80,23 +85,33 @@ const FloatingSearchBar = memo(function FloatingSearchBar({
   modeColor: string;
 }) {
   const theme = useTheme();
+  const [closing, setClosing] = useState(false);
   const panelBg = theme === 'dark' ? 'bg-slate-800/95' : 'bg-white/95';
   const textColor = theme === 'dark' ? 'text-white' : 'text-slate-900';
   const placeholderStyle = theme === 'dark' ? 'placeholder:text-slate-400' : 'placeholder:text-slate-500';
   const iconColor = theme === 'dark' ? 'text-slate-400' : 'text-slate-500';
 
+  const requestClose = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
+    window.setTimeout(() => onClose(), 220);
+  }, [closing, onClose]);
+
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose(); };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose]);
+  }, [requestClose]);
 
   return (
     <>
-      <div className="fixed inset-0 z-[999] bg-black/20" onClick={onClose} />
+      <div
+        className={`fixed inset-0 z-[999] bg-black/20 ${closing ? 'animate-overlay-out' : 'animate-overlay-in'}`}
+        onClick={requestClose}
+      />
       <div className="fixed left-1/2 top-8 z-[1002] w-full max-w-2xl -translate-x-1/2 px-4">
         <div
-          className={`rounded-2xl ${panelBg} shadow-2xl backdrop-blur-xl border`}
+          className={`rounded-2xl ${panelBg} shadow-2xl backdrop-blur-xl border ${closing ? 'animate-panel-out' : 'animate-panel-in'}`}
           style={{
             borderColor: `${modeColor}40`,
             boxShadow: `0 0 40px ${modeColor}20, 0 8px 32px rgba(0,0,0,0.3)`,
@@ -114,7 +129,7 @@ const FloatingSearchBar = memo(function FloatingSearchBar({
               style={{ background: 'transparent' }}
             />
             <button
-              onClick={onClose}
+              onClick={requestClose}
               className={`absolute right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200 ${
                 theme === 'dark' ? 'hover:bg-slate-700/50 text-slate-400' : 'hover:bg-slate-200/50 text-slate-600'
               }`}
@@ -124,6 +139,16 @@ const FloatingSearchBar = memo(function FloatingSearchBar({
           </div>
         </div>
       </div>
+      <style>{`
+        @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes overlayOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes panelIn { from { opacity: 0; transform: translateY(-12px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes panelOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-10px) scale(0.99); } }
+        .animate-overlay-in { animation: overlayIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .animate-overlay-out { animation: overlayOut 220ms cubic-bezier(0.4, 0, 1, 1) both; }
+        .animate-panel-in { animation: panelIn 320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .animate-panel-out { animation: panelOut 220ms cubic-bezier(0.4, 0, 1, 1) both; }
+      `}</style>
     </>
   );
 });
@@ -141,6 +166,7 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
   modeColor: string;
 }) {
   const theme = useTheme();
+  const [closing, setClosing] = useState(false);
   const panelBg = theme === 'dark' ? 'bg-slate-800/95' : 'bg-white/95';
   const textColor = theme === 'dark' ? 'text-white' : 'text-slate-900';
   const subTextColor = theme === 'dark' ? 'text-slate-400' : 'text-slate-600';
@@ -153,18 +179,27 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
     }
   };
 
+  const requestClose = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
+    window.setTimeout(() => onClose(), 220);
+  }, [closing, onClose]);
+
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose(); };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose]);
+  }, [requestClose]);
 
   return (
     <>
-      <div className="fixed inset-0 z-[999] bg-black/20" onClick={onClose} />
+      <div
+        className={`fixed inset-0 z-[999] bg-black/20 ${closing ? 'animate-overlay-out' : 'animate-overlay-in'}`}
+        onClick={requestClose}
+      />
       <div className="fixed left-20 top-8 z-[1002] w-80 px-4">
         <div
-          className={`rounded-2xl ${panelBg} p-6 shadow-2xl backdrop-blur-xl border`}
+          className={`rounded-2xl ${panelBg} p-6 shadow-2xl backdrop-blur-xl border ${closing ? 'animate-panel-out' : 'animate-panel-in'}`}
           style={{
             borderColor: `${modeColor}40`,
             boxShadow: `0 0 40px ${modeColor}20, 0 8px 32px rgba(0,0,0,0.3)`,
@@ -176,7 +211,7 @@ const FloatingFiltersPanel = memo(function FloatingFiltersPanel({
               <h3 className={`font-semibold ${textColor} text-lg`}>Filters</h3>
             </div>
             <button
-              onClick={onClose}
+              onClick={requestClose}
               className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200 ${
                 theme === 'dark' ? 'hover:bg-slate-700/50 text-slate-400' : 'hover:bg-slate-200/50 text-slate-600'
               }`}
@@ -442,8 +477,22 @@ export default function MapView({
     }
 
     if (activeFilters.length > 0) {
+      const predicates: Record<string, (loc: LocationEntry) => boolean> = {
+        wifi: (loc) => loc.features.includes('wifi'),
+        power: (loc) => loc.features.includes('power'),
+        'laptop-friendly': (loc) => loc.features.includes('wifi') && loc.features.includes('power'),
+        outdoor: (loc) => loc.features.includes('outdoor') || /outdoor|terrace|patio|courtyard|garden/i.test(loc.seating ?? ''),
+        indoor: (loc) => /indoor|inside/i.test(loc.seating ?? ''),
+        rooftop: (loc) => /roof/i.test(loc.seating ?? '') || /rooftop/i.test(loc.atmosphere ?? ''),
+        'pet-friendly': (loc) => loc.features.includes('pet-friendly'),
+        quiet: (loc) => /quiet|calm|focused|study|minimal/i.test(loc.atmosphere ?? ''),
+        lively: (loc) => /lively|vibrant|busy|energetic|playful/i.test(loc.atmosphere ?? ''),
+        budget: (loc) => loc.features.includes('budget') || loc.price === '€',
+        premium: (loc) => loc.features.includes('premium') || loc.price === '€€€',
+      };
+
       result = result.filter((loc) =>
-        activeFilters.every((f) => loc.features.includes(f))
+        activeFilters.every((f) => (predicates[f] ? predicates[f](loc) : loc.features.includes(f)))
       );
     }
 
