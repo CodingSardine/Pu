@@ -1,0 +1,650 @@
+{
+  "avo": {
+    "name": "Avo Armenian Food",
+    "placeId": "ChIJn0kHwloX3hQROuFvFAbXjtE",
+    "googleMapsUri": "https://maps.google.com/?cid=15100243021732503866&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.17124630000001,
+    "lng": 33.3616331,
+    "displayName": "Avo Armenian Food"
+  },
+  "piatsa": {
+    "name": "Piatsa Gourounaki",
+    "placeId": "ChIJx7quJkUX3hQRcO1F7b62SXg",
+    "googleMapsUri": "https://maps.google.com/?cid=8667659888992054640&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.172725,
+    "lng": 33.3623893,
+    "displayName": "Piatsa Gourounaki"
+  },
+  "zanettos": {
+    "name": "Zanettos Tavern",
+    "placeId": "ChIJxSZIymcX3hQRqpvCJh14s48",
+    "googleMapsUri": "https://maps.google.com/?cid=10354752034854575018&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1727899,
+    "lng": 33.3647366,
+    "displayName": "Zanettos Cypriot Tavern"
+  },
+  "toanamma": {
+    "name": "To Anamma",
+    "placeId": "ChIJm2MEOUUX3hQRN0tx56SuaOI",
+    "googleMapsUri": "https://maps.google.com/?cid=16314481673430453047&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1733474,
+    "lng": 33.361568399999996,
+    "displayName": "To Anamma Traditional Restaurant"
+  },
+  "elysian": {
+    "name": "Elysian Fusion Kitchen",
+    "placeId": "ChIJYwQawygX3hQRrOA7-ILY4Y0",
+    "googleMapsUri": "https://maps.google.com/?cid=10223690686129758380&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.169645100000004,
+    "lng": 33.357369,
+    "displayName": "Elysian Fusion Kitchen"
+  },
+  "furen": {
+    "name": "Furen",
+    "placeId": "ChIJq_wFPs8X3hQRDOHJI8BvPfQ",
+    "googleMapsUri": "https://maps.google.com/?cid=17599345789858603276&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.170048799999996,
+    "lng": 33.3608111,
+    "displayName": "FUREN"
+  },
+  "bellavita": {
+    "name": "Bella Vita",
+    "placeId": "ChIJq048NasX3hQRsUV5Mb6Qcj8",
+    "googleMapsUri": "https://maps.google.com/?cid=4571875718282692017&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.17144040000001,
+    "lng": 33.3628621,
+    "displayName": "Bella Vita"
+  },
+  "evroula": {
+    "name": "Evroula",
+    "placeId": "ChIJR4Ov61oX3hQRhOlOH8tVm3A",
+    "googleMapsUri": "https://maps.google.com/?cid=8114173484530067844&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1710584,
+    "lng": 33.3614485,
+    "displayName": "Evroulla"
+  },
+  "mattheos": {
+    "name": "Mattheos Restaurant",
+    "placeId": "ChIJI0-F40QX3hQRS-nj14v0Xzc",
+    "googleMapsUri": "https://maps.google.com/?cid=3990176676333218123&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1736499,
+    "lng": 33.3629509,
+    "displayName": "Mathaios Restaurant"
+  },
+  "shamfood": {
+    "name": "Sham Food",
+    "placeId": "ChIJI__GiVoX3hQRrEl6fOqccqc",
+    "googleMapsUri": "https://maps.google.com/?cid=12065878882603649452&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1703075,
+    "lng": 33.3608573,
+    "displayName": "SHAM FOOD"
+  },
+  "obo": {
+    "name": "Obo Kitchen",
+    "placeId": "ChIJ-6YOPgUX3hQRlrMj9Xlzato",
+    "googleMapsUri": "https://maps.google.com/?cid=15738518815440614294&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1758419,
+    "lng": 33.3700603,
+    "displayName": "Øbo Kitchen"
+  },
+  "platanos": {
+    "name": "Platanos Tavern",
+    "placeId": "ChIJ1fvh4P4Z3hQRum0ajkreFDQ",
+    "googleMapsUri": "https://maps.google.com/?cid=3752868801299508666&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1622245,
+    "lng": 33.3516769,
+    "displayName": "Platanos Tavern"
+  },
+  "syrianclub": {
+    "name": "Syrian Club",
+    "placeId": "ChIJ741Ve6oQ3hQRncR9uryw5IE",
+    "googleMapsUri": "https://maps.google.com/?cid=9359800250211878045&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1682464,
+    "lng": 33.345450299999996,
+    "displayName": "Syrian Club"
+  },
+  "omnieats": {
+    "name": "Omni Eats",
+    "placeId": "ChIJ7V3-oigX3hQR_jHPMEwJ208",
+    "googleMapsUri": "https://maps.google.com/?cid=5754203171736990206&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1685344,
+    "lng": 33.3601886,
+    "displayName": "omni eats"
+  },
+  "kathodon": {
+    "name": "Kathodon",
+    "placeId": "ChIJCf8wE0UX3hQRD3JcUCTYBQo",
+    "googleMapsUri": "https://maps.google.com/?cid=722220965741490703&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.174154699999995,
+    "lng": 33.3612727,
+    "displayName": "Kathodon Greek Restaurant & Coffee Shop"
+  },
+  "beba": {
+    "name": "Beba Restaurant",
+    "placeId": "ChIJI7GgAJsX3hQRQ6qSxZpbsXk",
+    "googleMapsUri": "https://maps.google.com/?cid=8768890669764880963&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.168851599999996,
+    "lng": 33.369591,
+    "displayName": "Εστιατόριο Μπέμπα"
+  },
+  "vasiliki": {
+    "name": "Vasiliki",
+    "placeId": "ChIJIVAfKC9F5xQRW5d4selkdYM",
+    "googleMapsUri": "https://maps.google.com/?cid=9472588346111334235&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 34.967051999999995,
+    "lng": 32.8287706,
+    "displayName": "Vasiliki guest house"
+  },
+  "imperialchinese": {
+    "name": "Imperial Chinese Nicosia",
+    "placeId": "ChIJQ9qQ0m8a3hQR7PqK91tChT0",
+    "googleMapsUri": "https://maps.google.com/?cid=4433022370978659052&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.165957299999995,
+    "lng": 33.317590599999996,
+    "displayName": "Imperial Chinese Restaurant"
+  },
+  "akakiko": {
+    "name": "Akakiko",
+    "placeId": "ChIJ8ZKDVQ0a3hQRxyzFqiBiPZA",
+    "googleMapsUri": "https://maps.google.com/?cid=10393571407484497095&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1639616,
+    "lng": 33.3264558,
+    "displayName": "Akakiko"
+  },
+  "indiaindia": {
+    "name": "India India",
+    "placeId": "ChIJV6hA6foZ3hQRmkp1nYafIqs",
+    "googleMapsUri": "https://maps.google.com/?cid=12331594130209983130&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1554773,
+    "lng": 33.3581663,
+    "displayName": "India India Restaurant - Take Away & Delivery"
+  },
+  "fanous": {
+    "name": "Fanous Lebanese Restaurant",
+    "placeId": "ChIJIV6E-VoX3hQR7LmfBt22HZ4",
+    "googleMapsUri": "https://maps.google.com/?cid=11393463692732381676&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.170155199999996,
+    "lng": 33.362084599999996,
+    "displayName": "Fanous Lebanese Restaurant"
+  },
+  "kyriakos": {
+    "name": "Kyriakos Souvlaki",
+    "placeId": "ChIJJ_TUHoAX3hQR7m3X_ZyNS6g",
+    "googleMapsUri": "https://maps.google.com/?cid=12126942127038361070&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1537722,
+    "lng": 33.3938304,
+    "displayName": "Ταβέρνα Κυριάκος Αγλαντζιά (Κυριάκος Σουβλάκια)"
+  },
+  "rokoko": {
+    "name": "Rokoko",
+    "placeId": "ChIJmUwpM1EX3hQR7BoH5Gv3tes",
+    "googleMapsUri": "https://maps.google.com/?cid=16984753612456925932&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1691709,
+    "lng": 33.3561498,
+    "displayName": "Rokoko Kitchen & Bar"
+  },
+  "moondogs": {
+    "name": "Moondog\\",
+    "placeId": "ChIJHelpO1gX3hQRKrQVQecKzDs",
+    "googleMapsUri": "https://maps.google.com/?cid=4308830931832386602&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1645776,
+    "lng": 33.3606626,
+    "displayName": "Moondog's Bar & Grill"
+  },
+  "nomiya": {
+    "name": "Nomiya",
+    "placeId": "ChIJV_Vi2lMZ3hQRLemgjnQxIzg",
+    "googleMapsUri": "https://maps.google.com/?cid=4045131266987714861&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1582213,
+    "lng": 33.3647178,
+    "displayName": "Nomiya Asian Bar"
+  },
+  "valtourigani": {
+    "name": "Valtou Rigani",
+    "placeId": "ChIJd9amdFcX3hQRvJslVQWjnIo",
+    "googleMapsUri": "https://maps.google.com/?cid=9988037316899609532&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.166568700000006,
+    "lng": 33.358612,
+    "displayName": "Valtou Rigani - Souvlakopolio (Nicosia)"
+  },
+  "fatbull": {
+    "name": "The Fat Bull Co.",
+    "placeId": "ChIJpR0VgTMb3hQR5e5fJvlouIk",
+    "googleMapsUri": "https://maps.google.com/?cid=9923797198210854629&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1614594,
+    "lng": 33.331751499999996,
+    "displayName": "The Fat Bull Co - Nicosia"
+  },
+  "yfantourgeio": {
+    "name": "Yfantourgeio",
+    "placeId": "ChIJK1gy7EQX3hQRc9_rnEs6w-c",
+    "googleMapsUri": "https://maps.google.com/?cid=16700255939649593203&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1734619,
+    "lng": 33.363793799999996,
+    "displayName": "Yfantourgeio TheWorkplace"
+  },
+  "brewlab": {
+    "name": "Brew Lab",
+    "placeId": "ChIJa39mz1kX3hQRdnH8Pdx2yAU",
+    "googleMapsUri": "https://maps.google.com/?cid=416713653836607862&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1669415,
+    "lng": 33.3583553,
+    "displayName": "BREW LAB"
+  },
+  "workshop": {
+    "name": "The Workshop Cafe",
+    "placeId": "ChIJudbDQdIZ3hQRKD8T-nyAFAs",
+    "googleMapsUri": "https://maps.google.com/?cid=798404308211285800&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.154786,
+    "lng": 33.3393018,
+    "displayName": "THE WORKSHOP"
+  },
+  "think30": {
+    "name": "Think 30",
+    "placeId": "ChIJb4uHrlkX3hQR5R018NRlrNM",
+    "googleMapsUri": "https://maps.google.com/?cid=15252678003234512357&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1652205,
+    "lng": 33.3623036,
+    "displayName": "Think 30"
+  },
+  "kofee": {
+    "name": "A Kxofee Project",
+    "placeId": "ChIJF6t_GVwX3hQR72Mg8Uv5p1o",
+    "googleMapsUri": "https://maps.google.com/?cid=6532463889087489007&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1664865,
+    "lng": 33.3666372,
+    "displayName": "A κχoffee project"
+  },
+  "hub": {
+    "name": "The Hub Nicosia",
+    "placeId": "ChIJVdssjqkQ3hQRrOPVr31o8vU",
+    "googleMapsUri": "https://maps.google.com/?cid=17722342372686554028&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.170235999999996,
+    "lng": 33.3423069,
+    "displayName": "HUB NICOSIA"
+  },
+  "pieto": {
+    "name": "Pieto Coffee",
+    "placeId": "ChIJB3_ClFoX3hQRiQWKhM0e_XI",
+    "googleMapsUri": "https://maps.google.com/?cid=8285812757472347529&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.170957,
+    "lng": 33.3612734,
+    "displayName": "Pieto"
+  },
+  "beanbar": {
+    "name": "Bean Bar Coffee",
+    "placeId": "ChIJCXks79sX3hQRti9ibXLY6ds",
+    "googleMapsUri": "https://maps.google.com/?cid=15846434749852823478&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.167085199999995,
+    "lng": 33.3613503,
+    "displayName": "Bean Bar 360"
+  },
+  "coffeelab": {
+    "name": "Coffee Lab Nicosia",
+    "placeId": "ChIJa39mz1kX3hQRdnH8Pdx2yAU",
+    "googleMapsUri": "https://maps.google.com/?cid=416713653836607862&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1669415,
+    "lng": 33.3583553,
+    "displayName": "BREW LAB"
+  },
+  "ucylibrary": {
+    "name": "UCY Library (Stelios Ioannou)",
+    "placeId": "ChIJnxailUAZ3hQRgB0gbwQuUyM",
+    "googleMapsUri": "https://maps.google.com/?cid=2545428810973584768&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.146809999999995,
+    "lng": 33.4123148,
+    "displayName": "University of Cyprus Library-Stelios Ioannou Learning Resource Center"
+  },
+  "municipallibrary": {
+    "name": "Nicosia Municipal Library",
+    "placeId": "ChIJsUAuTloX3hQR_Cu6DpUoQWc",
+    "googleMapsUri": "https://maps.google.com/?cid=7440272680055090172&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1697975,
+    "lng": 33.3610993,
+    "displayName": "CYPRUS LIBRARY"
+  },
+  "cypruslibrary": {
+    "name": "Cyprus Library",
+    "placeId": "ChIJsUAuTloX3hQR_Cu6DpUoQWc",
+    "googleMapsUri": "https://maps.google.com/?cid=7440272680055090172&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1697975,
+    "lng": 33.3610993,
+    "displayName": "CYPRUS LIBRARY"
+  },
+  "cvarlibrary": {
+    "name": "CVAR Research Library",
+    "placeId": "ChIJIXhKm0EX3hQR_wbKq0fY1Zk",
+    "googleMapsUri": "https://maps.google.com/?cid=11085003860178765567&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1757193,
+    "lng": 33.368746,
+    "displayName": "CVAR - Severis Foundation"
+  },
+  "goethelibrary": {
+    "name": "Goethe-Institut Library",
+    "placeId": "ChIJ5yiPfU4X3hQRInbQ3YKGIIg",
+    "googleMapsUri": "https://maps.google.com/?cid=9808987885038237218&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.177217899999995,
+    "lng": 33.35465,
+    "displayName": "Goethe-Institut Zypern"
+  },
+  "dailyroast": {
+    "name": "The Daily Roast",
+    "placeId": "ChIJ-_-vweMZ3hQRrS0J-nQjuuY",
+    "googleMapsUri": "https://maps.google.com/?cid=16625639959709691309&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.158268,
+    "lng": 33.3641139,
+    "displayName": "The Daily Roast"
+  },
+  "katakwa": {
+    "name": "Katakwa Culture Art Cafe",
+    "placeId": "ChIJ9ZxcapsZ3hQRGN0-xTvtzr8",
+    "googleMapsUri": "https://maps.google.com/?cid=13821245147414715672&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.153074600000004,
+    "lng": 33.366565099999995,
+    "displayName": "KATAKWA Culture • Art • Cafe"
+  },
+  "caffeneroengomi": {
+    "name": "Caffe Nero (Engomi)",
+    "placeId": "ChIJrUxpbg4a3hQRab26Vy2nKNM",
+    "googleMapsUri": "https://maps.google.com/?cid=15215595154258443625&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.163359199999995,
+    "lng": 33.3327053,
+    "displayName": "Caffè Nero Engomi"
+  },
+  "redsheep": {
+    "name": "Red Sheep Coffee Co.",
+    "placeId": "ChIJj3QfQ_wZ3hQR70dP4-2WsYw",
+    "googleMapsUri": "https://maps.google.com/?cid=10138050184652736495&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.160807399999996,
+    "lng": 33.356244,
+    "displayName": "Red Sheep Coffee Co. | Cafe Agioi Omologites"
+  },
+  "seriousblack": {
+    "name": "Serious Black Coffee",
+    "placeId": "ChIJjaur5VsX3hQRmUuhTy5moXw",
+    "googleMapsUri": "https://maps.google.com/?cid=8980571481043979161&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1672082,
+    "lng": 33.364494,
+    "displayName": "Serious Black Coffee"
+  },
+  "tastehabitat": {
+    "name": "Coffeehouse TasteHabitat",
+    "placeId": "ChIJw6IITQAX3hQRpy9CZQaPw94",
+    "googleMapsUri": "https://maps.google.com/?cid=16051830754509991847&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1672376,
+    "lng": 33.355188,
+    "displayName": "COFFEEHOUSE TasteHabitat"
+  },
+  "starbucksengomi": {
+    "name": "Starbucks (Engomi)",
+    "placeId": "ChIJHc4fzm8a3hQRT6SrY1c2QE0",
+    "googleMapsUri": "https://maps.google.com/?cid=5566508888392180815&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1658982,
+    "lng": 33.3174013,
+    "displayName": "Starbucks"
+  },
+  "mikelengomi": {
+    "name": "Mikel Coffee (Engomi)",
+    "placeId": "ChIJ0aC1hAMa3hQRoTjgVEukU_E",
+    "googleMapsUri": "https://maps.google.com/?cid=17389423229661100193&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1622193,
+    "lng": 33.3454201,
+    "displayName": "Mikel Coffee Company"
+  },
+  "apomero": {
+    "name": "Apomero Cafe",
+    "placeId": "ChIJnSuj8kEX3hQRpE11Y2bwHG4",
+    "googleMapsUri": "https://maps.google.com/?cid=7934480966065933732&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.175407299999996,
+    "lng": 33.3697521,
+    "displayName": "Apomero"
+  },
+  "kalakathoumena": {
+    "name": "Kala Kathoumena",
+    "placeId": "ChIJW643PUUX3hQRcGIVEWuR_1c",
+    "googleMapsUri": "https://maps.google.com/?cid=6340946689395090032&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1734657,
+    "lng": 33.3620151,
+    "displayName": "Τα καλά καθούμενα"
+  },
+  "paulzenapalace": {
+    "name": "Paul (Zena Palace)",
+    "placeId": "ChIJ488hTFcX3hQRw8exj8N2dZE",
+    "googleMapsUri": "https://maps.google.com/?cid=10481414290076190659&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.168083599999996,
+    "lng": 33.358875,
+    "displayName": "Zena Palace"
+  },
+  "supernova": {
+    "name": "Supernova Cafe",
+    "placeId": "ChIJCcfUWEUX3hQR1NES6FjOvP4",
+    "googleMapsUri": "https://maps.google.com/?cid=18355773062501290452&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.176733,
+    "lng": 33.364359,
+    "displayName": "Novo Pangea"
+  },
+  "makerspace": {
+    "name": "Makerspace Nicosia",
+    "placeId": "ChIJX2Zr5RIX3hQR4lGr0yOfYaA",
+    "googleMapsUri": "https://maps.google.com/?cid=11556693095033295330&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1740387,
+    "lng": 33.3647341,
+    "displayName": "Thinker Maker Space"
+  },
+  "k11": {
+    "name": "Kafeneio 11",
+    "placeId": "ChIJGfOdYUMX3hQRkajHEcR5w_c",
+    "googleMapsUri": "https://maps.google.com/?cid=17853247230845626513&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.172643199999996,
+    "lng": 33.3656226,
+    "displayName": "Kafenio 11"
+  },
+  "balza": {
+    "name": "Bálza Rooftop Bar",
+    "placeId": "ChIJz5MxfuQX3hQRyWZMIdhrS5Q",
+    "googleMapsUri": "https://maps.google.com/?cid=10685753116882396873&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.16934,
+    "lng": 33.3598553,
+    "displayName": "Balza"
+  },
+  "halara": {
+    "name": "Halara Cafe",
+    "placeId": "ChIJ9ec-IkUX3hQRV2UizP2xguE",
+    "googleMapsUri": "https://maps.google.com/?cid=16249746109115819351&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.173352099999995,
+    "lng": 33.3622426,
+    "displayName": "Halara Cafe"
+  },
+  "municipal": {
+    "name": "Nicosia Municipal Gardens",
+    "placeId": "ChIJQyM6JlIX3hQRpueQKbyDgY0",
+    "googleMapsUri": "https://maps.google.com/?cid=10196575875517966246&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.17300000000001,
+    "lng": 33.354,
+    "displayName": "Nicosia municipal gardens"
+  },
+  "taratsa": {
+    "name": "Taratsa Rooftop Bar",
+    "placeId": "ChIJY7kVOX8X3hQRZ8Zcqdkb_eo",
+    "googleMapsUri": "https://maps.google.com/?cid=16932720795646215783&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.174215499999995,
+    "lng": 33.360515,
+    "displayName": "1010 Taratsa"
+  },
+  "famagusta": {
+    "name": "Famagusta Gate Area",
+    "placeId": "ChIJu1u08bMX3hQRBeU9q_Py-s0",
+    "googleMapsUri": "https://maps.google.com/?cid=14842442650316825861&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1743137,
+    "lng": 33.3709954,
+    "displayName": "Famagusta Gate"
+  },
+  "lostfound": {
+    "name": "Lost + Found Drinkery",
+    "placeId": "ChIJEVYEmlUX3hQRwnb68wSZBoU",
+    "googleMapsUri": "https://maps.google.com/?cid=9585517103456876226&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1664075,
+    "lng": 33.352167699999995,
+    "displayName": "Lost + Found Drinkery"
+  },
+  "eleftheria": {
+    "name": "Eleftheria Square",
+    "placeId": "ChIJ1enz1gAX3hQRxRoUhJkb6t8",
+    "googleMapsUri": "https://maps.google.com/?cid=16134738961168079557&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1699953,
+    "lng": 33.3602499,
+    "displayName": "Eleftheria Square"
+  },
+  "zonkey": {
+    "name": "Zonkey Bar",
+    "placeId": "ChIJg08MJVcX3hQR9BPzbXt8bgw",
+    "googleMapsUri": "https://maps.google.com/?cid=895790245460775924&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.167533,
+    "lng": 33.357117699999996,
+    "displayName": "Zonkey Bar Nicosia"
+  },
+  "athalassa": {
+    "name": "Athalassa National Forest Park",
+    "placeId": "ChIJ0T1uWrUZ3hQR989JXxuuHls",
+    "googleMapsUri": "https://maps.google.com/?cid=6565876739338784759&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.127048099999996,
+    "lng": 33.3920351,
+    "displayName": "Athalassa National Forest Park"
+  },
+  "acropolis": {
+    "name": "Acropolis Park Nicosia",
+    "placeId": "ChIJWf2at-0Z3hQRc8MlEsBq_xs",
+    "googleMapsUri": "https://maps.google.com/?cid=2017448531256001395&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1464346,
+    "lng": 33.3615795,
+    "displayName": "Acropolis Park"
+  },
+  "oldsouls": {
+    "name": "The Old Souls",
+    "placeId": "ChIJbzAEHxkX3hQR-8tZy_4y3iA",
+    "googleMapsUri": "https://maps.google.com/?cid=2368386523958201339&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.167158,
+    "lng": 33.3631126,
+    "displayName": "The Old Souls"
+  },
+  "notesandspirits": {
+    "name": "Notes and Spirits",
+    "placeId": "ChIJUzf15FYX3hQRyUaziMN2soU",
+    "googleMapsUri": "https://maps.google.com/?cid=9633893135083062985&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.167583199999996,
+    "lng": 33.3566607,
+    "displayName": "NOTES A̶N̶D̶ ̶S̶P̶I̶R̶I̶T̶S̶"
+  },
+  "palaia": {
+    "name": "Palaia Pineza",
+    "placeId": "ChIJgcnW7UMX3hQRXsvoEpV7pqE",
+    "googleMapsUri": "https://maps.google.com/?cid=11648133366437956446&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1749218,
+    "lng": 33.3662956,
+    "displayName": "Palaia Pineza bar"
+  },
+  "istorja9": {
+    "name": "Istorja House No9",
+    "placeId": "ChIJPRa9KdQX3hQRo6c5dyy61Ek",
+    "googleMapsUri": "https://maps.google.com/?cid=5320081759972992931&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1664277,
+    "lng": 33.3628332,
+    "displayName": "Istorja House no9"
+  },
+  "babylon": {
+    "name": "Babylon Bar",
+    "placeId": "ChIJFXhFxP0Z3hQRdiwdhg4j5Uo",
+    "googleMapsUri": "https://maps.google.com/?cid=5396758273759980662&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1630517,
+    "lng": 33.3551788,
+    "displayName": "Babylon Bar"
+  },
+  "patiococktail": {
+    "name": "Patio Cocktail Bar",
+    "placeId": "ChIJ22hhUkUX3hQRq31dXk4Oz30",
+    "googleMapsUri": "https://maps.google.com/?cid=9065480304673521067&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1728771,
+    "lng": 33.3610804,
+    "displayName": "Patio Cocktail Bar"
+  },
+  "prozak": {
+    "name": "Prozak Kafeneio",
+    "placeId": "ChIJlb2uaFwX3hQRH9lRXyHDj4k",
+    "googleMapsUri": "https://maps.google.com/?cid=9912355852966287647&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1678657,
+    "lng": 33.3665488,
+    "displayName": "Καφενείο Πρόζακ"
+  },
+  "swimmingbirds": {
+    "name": "Swimming Birds",
+    "placeId": "ChIJEfcmbgkX3hQRIdlHShhE0ME",
+    "googleMapsUri": "https://maps.google.com/?cid=13965737315592034593&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.174022,
+    "lng": 33.3658757,
+    "displayName": "swimming birds"
+  },
+  "brewfellas": {
+    "name": "BrewFellas",
+    "placeId": "ChIJKRL_P0UX3hQRl8t6sCkzcn4",
+    "googleMapsUri": "https://maps.google.com/?cid=9111401250271447959&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.173764399999996,
+    "lng": 33.36124770000001,
+    "displayName": "BrewFellas Beer Bar"
+  },
+  "granazi": {
+    "name": "Granazi Art Space",
+    "placeId": "ChIJOVFnVf4Z3hQR6hIpwrjjl3I",
+    "googleMapsUri": "https://maps.google.com/?cid=8257318824478053098&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.163118499999996,
+    "lng": 33.3515976,
+    "displayName": "γρανάζι ."
+  },
+  "thegym": {
+    "name": "The Gym",
+    "placeId": "ChIJY9ad01oX3hQRkHYkY_NzpmY",
+    "googleMapsUri": "https://maps.google.com/?cid=7396726927180199568&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1721995,
+    "lng": 33.3623396,
+    "displayName": "The Gym"
+  },
+  "silverstar": {
+    "name": "Silver Star Wine Bar",
+    "placeId": "ChIJu9qELlEX3hQRp4G6JX3vkZE",
+    "googleMapsUri": "https://maps.google.com/?cid=10489428327905526183&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1693014,
+    "lng": 33.3564754,
+    "displayName": "Silver Star Bar"
+  },
+  "sevenmonkeys": {
+    "name": "Seven Monkeys The Bar",
+    "placeId": "ChIJV68UrYsX3hQR2yvRH-ePrO8",
+    "googleMapsUri": "https://maps.google.com/?cid=17270336893893028827&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1680223,
+    "lng": 33.358565899999995,
+    "displayName": "Seven Monkeys The Bar"
+  },
+  "sarahsjazz": {
+    "name": "Sarah\\",
+    "placeId": "ChIJozWfmFwX3hQR75wr3WuLymw",
+    "googleMapsUri": "https://maps.google.com/?cid=7839231396780154095&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.173191599999996,
+    "lng": 33.3624983,
+    "displayName": "Sarah's Jazz & Blues Club"
+  },
+  "neverland": {
+    "name": "Neverland Rock Bar",
+    "placeId": "ChIJm9w81kIX3hQRm3NTGzfJT1A",
+    "googleMapsUri": "https://maps.google.com/?cid=5787065284713214875&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.170823999999996,
+    "lng": 33.368367,
+    "displayName": "Neverland Rock Bar"
+  },
+  "newdivision": {
+    "name": "New Division",
+    "placeId": "ChIJtUkX-1YX3hQRpNyEcqGRPmA",
+    "googleMapsUri": "https://maps.google.com/?cid=6935140598794214564&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+    "lat": 35.1671745,
+    "lng": 33.356715699999995,
+    "displayName": "New Division"
+  }
+}

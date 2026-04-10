@@ -5,7 +5,6 @@ import ModeTransitionOverlay from './components/ModeTransitionOverlay';
 import type { PlaceApiData } from './components/LocationCard';
 import ThemeContext from './context/ThemeContext';
 import { Search, SlidersHorizontal, UtensilsCrossed, Focus, Coffee } from 'lucide-react';
-import { LOCATION_NAMES } from './data/locations.base';
 
 /**
  * Pu - Location Finder App for Nicosia, Cyprus
@@ -32,7 +31,93 @@ type Theme = 'dark' | 'light';
 // ---------------------------------------------------------------------------
 const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
 
-// Location names for all 81 locations come from `src/app/data/locations.base.ts`.
+// Location names for all 81 locations across all three modes
+const LOCATION_NAMES: Record<string, string> = {
+  // Eat mode
+  avo: 'Avo Armenian Food',
+  piatsa: 'Piatsa Gourounaki',
+  zanettos: 'Zanettos Tavern',
+  toanamma: 'To Anamma',
+  elysian: 'Elysian Fusion Kitchen',
+  furen: 'Furen',
+  bellavita: 'Bella Vita',
+  evroula: 'Evroula',
+  mattheos: 'Mattheos Restaurant',
+  shamfood: 'Sham Food',
+  obo: 'Obo Kitchen',
+  platanos: 'Platanos Tavern',
+  syrianclub: 'Syrian Club',
+  omnieats: 'Omni Eats',
+  kathodon: 'Kathodon',
+  beba: 'Beba Restaurant',
+  vasiliki: 'Vasiliki',
+  imperialchinese: 'Imperial Chinese Nicosia',
+  akakiko: 'Akakiko',
+  indiaindia: 'India India',
+  fanous: 'Fanous Lebanese Restaurant',
+  kyriakos: 'Kyriakos Souvlaki',
+  rokoko: 'Rokoko',
+  moondogs: 'Moondog\'s Bar & Grill',
+  nomiya: 'Nomiya',
+  valtourigani: 'Valtou Rigani',
+  fatbull: 'The Fat Bull Co.',
+  // Focus mode
+  yfantourgeio: 'Yfantourgeio',
+  brewlab: 'Brew Lab',
+  workshop: 'The Workshop Cafe',
+  think30: 'Think 30',
+  kofee: 'A Kxofee Project',
+  hub: 'The Hub Nicosia',
+  pieto: 'Pieto Coffee',
+  beanbar: 'Bean Bar Coffee',
+  coffeelab: 'Coffee Lab Nicosia',
+  ucylibrary: 'UCY Library (Stelios Ioannou)',
+  municipallibrary: 'Nicosia Municipal Library',
+  cypruslibrary: 'Cyprus Library',
+  cvarlibrary: 'CVAR Research Library',
+  goethelibrary: 'Goethe-Institut Library',
+  dailyroast: 'The Daily Roast',
+  katakwa: 'Katakwa Culture Art Cafe',
+  caffeneroengomi: 'Caffe Nero (Engomi)',
+  redsheep: 'Red Sheep Coffee Co.',
+  seriousblack: 'Serious Black Coffee',
+  tastehabitat: 'Coffeehouse TasteHabitat',
+  starbucksengomi: 'Starbucks (Engomi)',
+  mikelengomi: 'Mikel Coffee (Engomi)',
+  apomero: 'Apomero Cafe',
+  kalakathoumena: 'Kala Kathoumena',
+  paulzenapalace: 'Paul (Zena Palace)',
+  supernova: 'Supernova Cafe',
+  makerspace: 'Makerspace Nicosia',
+  // Chill mode
+  k11: 'Kafeneio 11',
+  balza: 'Bálza Rooftop Bar',
+  halara: 'Halara Cafe',
+  municipal: 'Nicosia Municipal Gardens',
+  taratsa: 'Taratsa Rooftop Bar',
+  famagusta: 'Famagusta Gate Area',
+  lostfound: 'Lost + Found Drinkery',
+  eleftheria: 'Eleftheria Square',
+  zonkey: 'Zonkey Bar',
+  athalassa: 'Athalassa National Forest Park',
+  acropolis: 'Acropolis Park Nicosia',
+  oldsouls: 'The Old Souls',
+  notesandspirits: 'Notes and Spirits',
+  palaia: 'Palaia Pineza',
+  istorja9: 'Istorja House No9',
+  babylon: 'Babylon Bar',
+  patiococktail: 'Patio Cocktail Bar',
+  prozak: 'Prozak Kafeneio',
+  swimmingbirds: 'Swimming Birds',
+  brewfellas: 'BrewFellas',
+  granazi: 'Granazi Art Space',
+  thegym: 'The Gym',
+  silverstar: 'Silver Star Wine Bar',
+  sevenmonkeys: 'Seven Monkeys The Bar',
+  sarahsjazz: 'Sarah\'s Jazz Club',
+  neverland: 'Neverland Rock Bar',
+  newdivision: 'New Division',
+};
 
 // Module-level cache for place data to avoid re-fetching on mode switches
 const placeDataCache = new Map<string, PlaceApiData>();
